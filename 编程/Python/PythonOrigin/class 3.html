@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第3章：变量——彻底理解</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../../../preview.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #1e293b;
+        }
+        h1 {
+            text-align: center;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        h3 {
+            color: #334155;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        pre {
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 1px;
+            border-radius: 5px;
+            font-size: inherit;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgb(255 255 255 / 0.5);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: rgb(248 250 252 / 0.5);
+            color: #0f172a;
+            font-weight: 600;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: rgb(248 250 252 / 0.5);
+        }
+        .section-container {
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            transition: all 0.8s ease;
+        }
+        .code-inline {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        strong {
+            color: #0f172a;
+        }
+        .emphasis-note {
+            background-color: #fef9c3;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .code-output-row {
+            align-items: stretch;
+            display: flex;
+            gap: 20px;
+        }
+        .code-output-row .code-col,
+        .code-output-row .output-col {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+        }
+        .output-col pre {
+            flex: 1;
+            background-color: rgb(248 250 252 / 0.5);
+            border: 2px dashed #cbd5e1;
+        }
+        .code-col pre {
+            flex: 1;
+        }
+
+        .code-col pre::-webkit-scrollbar,
+        .output-col pre::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-col pre::-webkit-scrollbar-track,
+        .output-col pre::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb,
+        .output-col pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb:hover,
+        .output-col pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body>
+<video autoplay muted loop playsinline style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: -1;
+                    border-radius: 10px;
+                ">
+    <source src="../../../Main_background_video.mp4" type="video/mp4">
+</video>
+
+<h1>第3章：变量——彻底理解</h1>
+
+<p>上一章我们知道了 <code>print()</code> 可以打印内容。但如果我们想让程序"记住"一些数据，就需要<strong>变量</strong>。</p>
+
+<hr>
+
+<!-- 3.1 变量是什么 -->
+<div class="section-container" id="class-3-3.1">
+    <h2>3.1 变量是什么——从内存说起</h2>
+    <p>先理解计算机是怎么存储数据的。</p>
+    <p>你的计算机有<strong>内存</strong>（RAM）。内存可以想象成一个巨大的储物柜，里面有几十亿个小格子，每个格子能存一个很小的数据（1 字节），每个格子有一个编号，叫做<strong>内存地址</strong>。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>地址       存储内容
+0x0000    01001010
+0x0001    00110110
+0x0002    11001001
+0x0003    00011101
+...       ...</code></pre>
+        </div>>
+    </div>
+    <p>如果你要存一个数字 <code>25</code>，需要找到一块空闲的内存空间，把 <code>25</code> 的二进制形式放进去，然后<strong>记住这块空间的地址</strong>，以后才能找到它。</p>
+    <p>但让人去记 <code>0x7ffe4b8a</code> 这样的地址太反人类了。于是编程语言提供了<strong>变量</strong>这个机制：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>age = 25</code></pre>
+        </div>
+    </div>
+    <p>这句话的意思是：</p>
+    <ol>
+        <li>在内存中找个地方，把 <code>25</code> 存进去</li>
+        <li>给这个地方起个名字叫 <code>age</code></li>
+        <li>以后写 <code>age</code>，Python 就去找到那个内存地址，把里面的值取出来</li>
+    </ol>
+    <p><strong>变量不是"盒子"</strong>——这是常见的误解。</p>
+    <p>更准确的模型是：<strong>变量是一个标签，贴在内存中的某个对象上。</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>内存中的对象 25  <span style="font-size: 1.5em; margin-right: 5px;">⟵</span> age（标签）</code></pre>
+        </div>
+    </div>
+    <p>为什么"盒子模型"不准确？因为后面我们会看到，多个变量可以贴在同一个对象上，就像给同一个东西贴多个标签。</p>
+</div>
+
+<!-- 3.2 赋值语句逐字符拆解 -->
+<div class="section-container" id="class-3-3.2">
+    <h2>3.2 赋值语句逐字符拆解</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>age = 25</code></pre>
+        </div>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>字符</th>
+            <th>含义</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr><td><code>a</code></td><td>变量名的第一个字符</td></tr>
+        <tr><td><code>g</code></td><td>变量名的第二个字符</td></tr>
+        <tr><td><code>e</code></td><td>变量名的第三个字符</td></tr>
+        <tr><td><code> </code></td><td>空格，Python 忽略</td></tr>
+        <tr><td><code>=</code></td><td><strong>赋值运算符</strong>：把右边的东西绑定到左边的名字上</td></tr>
+        <tr><td><code> </code></td><td>空格</td></tr>
+        <tr><td><code>2</code></td><td>整数 25 的第一个数字</td></tr>
+        <tr><td><code>5</code></td><td>整数 25 的第二个数字</td></tr>
+        </tbody>
+    </table>
+    <p><strong>Python 执行这行代码的完整过程</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>步骤1：看到 age → 这是一个标识符，后面有 =，说明这是赋值语句的左半部分
+步骤2：看到 = → 赋值运算符，先计算右边
+步骤3：看到 25 → 创建整数对象 25（实际上为了性能，小整数可能被预先创建了）
+步骤4：将名字 age 绑定到整数对象 25 上
+步骤5：这条语句执行完毕，没有返回值（或者更准确地说，赋值语句不产生值）</code></pre>
+        </div>
+    </div>
+    <p><strong>关键认知</strong>：<code>=</code> 的右边<strong>先执行</strong>。Python 总是先把右边的表达式算出结果，然后才把结果绑定到左边的变量名。</p>
+    <p>这解释了我们上一章提到的多重赋值为什么能直接交换：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a, b = b, a</code></pre>
+        </div>
+    </div>
+    <p>执行过程：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>步骤1：计算右边 b, a → 得到一个元组 (b, a)，比如 b=10, a=20，结果是 (10, 20)
+步骤2：这个元组 (10, 20) 是"临时的"，和原来的 a, b 已经没有关系了
+步骤3：把左边 a, b 分别绑定到 10 和 20
+步骤4：现在 a=10, b=20，交换完成</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 3.3 变量与 id() 函数 -->
+<div class="section-container" id="class-3-3.3">
+    <h2>3.3 变量与 <code>id()</code> 函数</h2>
+    <p><code>id()</code> 函数返回一个对象的<strong>内存地址</strong>。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = 100
+print(id(x))</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>140725631307992</code></pre>
+        </div>
+    </div>
+    <p>这个数字就是 <code>100</code> 这个整数对象在内存中的地址。每次运行可能不一样，这不重要。</p>
+    <p>重要的是，我们可以用 <code>id()</code> 来追踪变量到底指向谁：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = 100
+b = 100
+print(id(a))
+print(id(b))</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br>140725631307992
+140725631307992</code></pre>
+        </div>
+    </div>
+    <p>你会发现 <code>id(a)</code> 和 <code>id(b)</code> <strong>可能是一样的</strong>。</p>
+    <p>为什么说"可能"？因为 Python 会预先创建一些小整数（-5 到 256）供反复使用，以节省内存。所以：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = 100   # 小整数，Python 复用了已有的 100 对象
+b = 100   # 还是那个 100 对象
+print(id(a) == id(b))   # True
+
+a = 1000  # 大整数，Python 创建了一个新的 1000 对象
+b = 1000  # 又创建了一个新的 1000 对象
+print(id(a) == id(b))   # 可能是 False 也可能是 True（取决于 Python 的实现和运行方式）</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br>True
+<br><br><br>True</code></pre>
+        </div>
+    </div>
+    <p><strong>这是实现细节，不影响你写代码。</strong> 你只需要知道：每次 <code>=</code> 右边的表达式被计算时，会产生一个对象。这个对象可能被复用，可能是全新的。不要依赖这个行为来写代码。</p>
+</div>
+
+<!-- 3.4 变量的重新赋值 -->
+<div class="section-container" id="class-3-3.4">
+    <h2>3.4 变量的重新赋值</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = 10
+print(id(x))   # 地址 A
+
+x = 20
+print(id(x))   # 地址 B，不一样了</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>140725631305112<br><br>
+140725631305432
+</code></pre>
+        </div>
+    </div>
+    <p><strong>注意</strong>：不是"把 10 改成 20"，而是：</p>
+    <ol>
+        <li>创建一个新的整数对象 <code>20</code></li>
+        <li>把标签 <code>x</code> 从旧的 <code>10</code> 上撕下来，贴到 <code>20</code> 上</li>
+        <li>如果 <code>10</code> 没有别的变量指向它，它会被垃圾回收</li>
+    </ol>
+    <p><strong>整数是不可变对象</strong>，一旦创建，它的值就不能改变。你只能让变量指向一个新对象，不能改变旧对象的内容。</p>
+</div>
+
+<!-- 3.5 多个变量指向同一个对象 -->
+<div class="section-container" id="class-3-3.5">
+    <h2>3.5 多个变量指向同一个对象</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = 500
+b = a</code></pre>
+        </div>
+    </div>
+    <p>这条语句的执行过程：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>步骤1：a = 500 → 创建整数 500，把标签 a 贴上去
+步骤2：b = a → 找到 a 指向的对象（500），把标签 b 也贴到同一个对象上</code></pre>
+        </div>
+    </div>
+    <p>此时：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre style="text-align: center"><img src='drawio/class-3-3.5.svg' alt=''></pre>
+        </div>
+
+    </div>
+    <p>两个标签贴在同一个对象上。</p>
+    <p>验证：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = 500
+b = a
+print(id(a) == id(b))</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br>True</code></pre>
+        </div>
+    </div>
+    <p><strong>重要实验</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = [1, 2, 3]   # 列表是可变对象
+b = a           # b 也指向同一个列表
+b.append(4)     # 通过 b 修改列表
+print(a)        # [1, 2, 3, 4]  ← a 也变了！</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br><br>[1, 2, 3, 4]</code></pre>
+        </div>
+    </div>
+    <p>因为 <code>a</code> 和 <code>b</code> 指向的是<strong>同一个列表对象</strong>。通过 <code>b</code> 修改它，<code>a</code> 看到的当然也变了。</p>
+    <p>对比：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = [1, 2, 3]
+b = a
+b = [1, 2, 3, 4]   # 把 b 贴到一个全新的列表上
+print(a)            # [1, 2, 3]   ← a 没变</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br><br>[1, 2, 3]</code></pre>
+        </div>
+    </div>
+    <p>第二行 <code>b = a</code> 让 b 和 a 指向同一个列表。</p>
+    <p>第三行 <code>b = [1, 2, 3, 4]</code> 创建了一个<strong>全新的列表</strong>，把 b 从旧列表上撕下来贴到新列表上。a 还贴在旧列表上，所以 a 没变。</p>
+</div>
+
+<!-- 3.6 变量命名规则详解 -->
+<div class="section-container" id="class-3-3.6">
+    <h2>3.6 变量命名规则详解</h2>
+
+    <h3 id="class-3-3.6.1">3.6.1 硬性规则（违反就报错）</h3>
+    <p><strong>规则一：只能包含字母、数字、下划线</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>name = "合法"
+my_name = "合法"
+_private = "合法"
+user123 = "合法"
+
+my-name = "非法"   # SyntaxError，连字符不允许
+my name = "非法"   # SyntaxError，空格不允许
+123abc = "非法"    # SyntaxError，不能以数字开头</code></pre>
+        </div>
+        <div class="output-col" style="min-width: 0;">
+            <pre><code>  File "wrong_name.py", line 6
+    my-name = "非法"   # SyntaxError，连字符不允许
+    ^^^^^^^
+SyntaxError: cannot assign to expression here. Maybe you meant '==' instead of '='?<br><br>  File "wrong_name.py", line 7
+    my name = "非法"   # SyntaxError，空格不允许
+       ^^^^
+SyntaxError: invalid syntax<br><br>  File "wrong_name.py", line 8
+    123abc = "非法"    # SyntaxError，不能以数字开头
+      ^
+SyntaxError: invalid decimal literal</code></pre>
+        </div>
+    </div>
+    <p>为什么不能以数字开头？因为 Python 解析器看到数字就会开始解析数字字面量：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>123abc → Python 先看到 1，开始解析数字
+          看到 2，继续解析数字
+          看到 3，继续解析数字
+          看到 a，这不是数字的一部分→报错</code></pre>
+        </div>
+    </div>
+
+    <p><strong>规则二：不能使用 Python 的关键字</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>if = 10       # 错误
+class = 10    # 错误
+for = 10      # 错误
+True = 10     # 错误
+None = 10     # 错误</code></pre>
+        </div>
+    </div>
+    <p>关键字是 Python 语法的一部分，有特殊含义，不能被重新定义。</p>
+
+    <p><strong>规则三：区分大小写</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>name = "小明"
+Name = "小红"
+NAME = "小刚"
+
+print(name)
+print(Name)
+print(NAME)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><br><br><br><br>小明
+小红
+小刚<code></code></pre>
+        </div>
+    </div>
+    <p>这是<strong>三个完全不同的变量</strong>。首字母大写、全大写、全小写是三个独立的名字。</p>
+
+    <h3 id="class-3-3.6.2">3.6.2 命名约定（不遵守不会报错，但会被骂）</h3>
+    <p>约定不是强制规则，但整个 Python 社区都在遵守，你不遵守代码会显得格格不入。</p>
+    <p><strong>约定一：变量名用小写，单词间用下划线</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>my_name = "正确"
+user_age = "正确"
+total_count = "正确"
+
+myname = "可以，但可读性差"
+MyName = "这是驼峰命名，Python 中不推荐用于变量"</code></pre>
+        </div>
+    </div>
+    <p>这种小写加下划线的风格叫 <strong>snake_case</strong>（蛇形命名法），因为单词像用下划线串起来的长蛇。</p>
+
+    <p><strong>约定二：常量用全大写</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>PI = 3.14159
+MAX_USERS = 100
+DEFAULT_TIMEOUT = 30</code></pre>
+        </div>
+    </div>
+    <p>全大写表示"这个值在整个程序中不应该被修改"。注意，Python 并不能强制阻止你修改它，这只是约定。</p>
+
+    <p><strong>约定三：以单下划线开头表示"内部使用"</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>_internal = "这是内部变量，外部代码不应该直接访问"</code></pre>
+        </div>
+    </div>
+    <p>这是告诉其他开发者"这个变量是我内部用的，你别碰"。</p>
+
+    <p><strong>约定四：以双下划线开头和结尾的是 Python 的特殊方法</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>__init__
+__str__
+__name__</code></pre>
+        </div>
+    </div>
+    <p>这种叫"魔术方法"（dunder methods），是 Python 自己用的。<strong>不要自己发明这种名字</strong>。</p>
+</div>
+
+<!-- 3.7 变量是什么类型的 -->
+<div class="section-container" id="class-3-3.7">
+    <h2>3.7 变量是什么类型的</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = 10
+print(type(x))
+
+x = "Hello"
+print(type(x))</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>&lt;class 'int'&gt;<br><br>
+&lt;class 'str'&gt;</code></pre>
+        </div>
+    </div>
+    <p>变量本身<strong>没有类型</strong>。类型是<strong>对象</strong>的属性。</p>
+    <p>变量只是标签，贴在什么类型的对象上，它就指向什么类型。同一个变量可以先后贴在不同类型的对象上。</p>
+    <p>这就是"动态类型"的真正含义：变量可以在运行时改变指向的对象的类型。</p>
+    <p>对比 C 语言：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>int x = 10;     // x 被声明为 int 类型，永远只能存整数
+x = "Hello";    // 编译错误，类型不匹配</code></pre>
+        </div>
+    </div>
+    <p>Python：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = 10          # x 指向整数
+x = "Hello"     # 完全可以，x 现在指向字符串</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 3.8 删除变量 -->
+<div class="section-container" id="class-3-3.8">
+    <h2>3.8 删除变量</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = 10
+print(x)
+del x
+print(x)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>10
+Traceback (most recent call last):
+  File "delete.py", line 4, in &lt;module&gt;
+    print(x)       # NameError: name 'x' is not defined
+          ^
+NameError: name 'x' is not defined</code></pre>
+        </div>
+    </div>
+    <p><code>del x</code> 做了什么：</p>
+    <ol>
+        <li>撕掉对象上的 <code>x</code> 标签</li>
+        <li>名字 <code>x</code> 不再存在</li>
+        <li>如果 <code>10</code> 这个对象没有其他标签指向它，它会在某个时刻被垃圾回收</li>
+    </ol>
+    <p><code>del</code> <strong>不删除对象</strong>，它删除的是<strong>变量名</strong>（标签）。对象由垃圾回收机制处理。</p>
+</div>
+
+<!-- 3.9 同时给多个变量赋值 -->
+<div class="section-container" id="class-3-3.9">
+    <h2>3.9 同时给多个变量赋值</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = b = c = 0</code></pre>
+        </div>
+    </div>
+    <p>执行过程：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>步骤1：右边 0 → 创建整数 0
+步骤2：从右向左依次绑定：c = 0, b = 0, a = 0
+步骤3：最终 a, b, c 都指向同一个整数对象 0</code></pre>
+        </div>
+    </div>
+    <p>验证：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = b = c = 0
+print(id(a) == id(b) == id(c))</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>True</code></pre>
+        </div>
+    </div>
+    <p><strong>多变量解包</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x, y, z = 1, 2, 3</code></pre>
+        </div>
+    </div>
+    <p>执行过程：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>步骤1：右边 1, 2, 3 → 自动打包成元组 (1, 2, 3)
+步骤2：左边 x, y, z → 解包：x 绑定到 1, y 绑定到 2, z 绑定到 3</code></pre>
+        </div>
+    </div>
+    <p><strong>左右数量必须一致</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x, y = 1, 2, 3    # 错误：左边 2 个，右边 3 个
+x, y, z = 1, 2    # 错误：左边 3 个，右边 2 个</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 3.10 变量不存在 vs 变量值是 None -->
+<div class="section-container" id="class-3-3.10">
+    <h2>3.10 变量不存在 vs 变量值是 None</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># 情况一：变量从未被定义
+print(non_existent)
+
+# 情况二：变量被定义为 None
+result = None
+print(result)</code></pre>
+        </div>
+        <div class="output-col" style="min-width: 0">
+            <pre>Traceback (most recent call last):
+  File "wrong_variety.py", line 2, in &lt;module&gt;
+    print(non_existent)    # NameError: name 'non_existent' is not defined
+          ^^^^^^^^^^^^
+NameError: name 'non_existent' is not defined<br>None</code></pre>
+        </div>
+    </div>
+    <p>这两个完全不同：</p>
+    <ul>
+        <li><code>NameError</code>：名字根本不存在，Python 不认识</li>
+        <li><code>None</code>：名字存在，指向一个叫 <code>None</code> 的对象，表示"故意为空"</li>
+    </ul>
+</div>
+
+<!-- 3.11 本章总结 -->
+<div class="section-container" id="class-3-3.11">
+    <h2>3.11 本章总结</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>概念</th>
+            <th>说明</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>变量的本质</td>
+            <td>贴在内存对象上的标签（不是盒子）</td>
+        </tr>
+        <tr>
+            <td><code>=</code> 赋值</td>
+            <td>把右边的表达式结果绑定到左边的名字上</td>
+        </tr>
+        <tr>
+            <td>对象 vs 变量</td>
+            <td>对象存数据，变量是指向对象的标签</td>
+        </tr>
+        <tr>
+            <td><code>id()</code></td>
+            <td>查看对象的内存地址</td>
+        </tr>
+        <tr>
+            <td>重新赋值</td>
+            <td>标签从一个对象移到另一个对象</td>
+        </tr>
+        <tr>
+            <td>多标签</td>
+            <td>多个变量可以指向同一个对象</td>
+        </tr>
+        <tr>
+            <td>不可变对象</td>
+            <td>值不能改变，只能让变量指向新对象（整数、字符串等）</td>
+        </tr>
+        <tr>
+            <td>可变对象</td>
+            <td>值可以就地改变（列表、字典等）</td>
+        </tr>
+        <tr>
+            <td>动态类型</td>
+            <td>变量可以指向任何类型的对象</td>
+        </tr>
+        <tr>
+            <td><code>del</code></td>
+            <td>删除变量名，不删除对象</td>
+        </tr>
+        <tr>
+            <td><code>None</code></td>
+            <td>特殊的空值对象</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    document.querySelectorAll('.section-container').forEach(section => {
+        section.addEventListener('mouseenter', () => {
+            section.style.transform = 'scale(1.03)';
+            section.style.backdropFilter = 'none'
+            section.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)'
+        })
+
+        section.addEventListener('mouseleave', () => {
+            section.style.transform = 'scale(1)';
+            section.style.backdropFilter = 'blur(10px)'
+            section.style.boxShadow = 'none'
+        })
+    })
+</script>
+</body>
+</html>

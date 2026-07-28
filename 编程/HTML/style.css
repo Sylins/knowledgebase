@@ -1,0 +1,102 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 2px;
+    width: 1270px;
+    margin: auto;
+    line-height: 1.8;
+    color: black;
+    background-color: white;
+}
+
+code {
+    font-family: "JetBrains Mono", Consolas, monospace;
+}
+
+h1 {
+    color: black;
+    max-width: fit-content;
+    margin: auto;
+}
+
+.part1 {
+    padding: 15px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+.part-1-video {
+    opacity: 0.3;
+    transition: all 0.8s ease;
+}
+
+.part1:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    color:white;
+}
+
+.part1:hover .part-1-video {
+    opacity: 1;
+}
+
+.part2 {
+    padding: 15px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.part-2-video {
+    opacity: 0.3;
+    transition: all 0.8s ease;
+}
+
+.part2:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    color:white;
+}
+
+.part2:hover .part-2-video {
+    opacity: 1;
+}
+
+.part3 {
+    transform: scale(0.9);
+    padding: 15px;
+    border-radius: 10px;
+    backdrop-filter: blur(0px);
+    transition: all 0.3s ease;
+}
+
+.part3:hover {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.part-3and4-video {
+    filter: blur(10px);
+    transition: all 0.8s ease;
+}
+
+.list {
+    padding: 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.list:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+.part4 {
+    transform: scale(0.9);
+    padding: 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.part4:hover {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>什么是 HTML？搭建第一个网页</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background-color: white;">
+<h1>什么是 HTML？搭建第一个网页</h1>
+<br>
+<div style="text-align: center;">关键词:标签（Tag）、元素（Element）、骨架（Skeleton）、
+    &lt;!DOCTYPE html&gt;、&lt;html&gt;、&lt;head&gt;、&lt;body&gt;、&lt;h1&gt;、&lt;p&gt;
+</div>
+<br>
+<div class="part1">
+    <video class="part-1-video" autoplay muted loop playsinline style="
+                    position: absolute;
+                    pointer-events: none;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: 0;
+                    border-radius: 10px;
+                ">
+        <source src="video/part1-BlackHole.mp4" type="video/mp4">
+    </video>
+    <div style="z-index: 1;position: relative;">
+        <h2>一、HTML 到底是什么？</h2>
+        <div>HTML 全称是 HyperText Markup Language（超文本标记语言）。</div>
+        <ul>
+            <li>超文本：不只是文字，还能包含链接、图片、视频</li>
+            <li>标记语言：用“标签”把内容包裹起来，告诉浏览器这是什么</li>
+        </ul>
+        <div>它不是编程语言，没有逻辑处理能力。</div>
+    </div>
+</div>
+
+<br>
+
+<div class="part2" style="position: relative;">
+    <video class="part-2-video" autoplay muted loop playsinline style="
+                    position: absolute;
+                    pointer-events: none;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: 0;
+                    border-radius: 10px;
+                ">
+        <source src="video/part1-BlackHole.mp4" type="video/mp4">
+    </video>
+    <div style="z-index: 1;position: relative;">
+        <h2>二、标签</h2>
+        <div>HTML 的核心就是标签。标签通常成对出现：</div>
+        <div style="text-align: center;font-size: x-large">
+            <div style="color: black;background-color: white;border: 4px solid white;border-radius: 10px;width: fit-content;margin: auto;opacity: 0.7">
+                <code style="line-height: 0.5">&lt;p&gt;这是一段文字&lt;/p&gt;</code>
+                <p style="line-height: 0.5">这是一段文字</p>
+            </div>
+        </div>
+        <ul>
+            <li style="font-size: large">&lt;p&gt; — 开始标签</li>
+            <li style="font-size: large">&lt;/p&gt; — 结束标签</li>
+            <li style="font-size: large">中间是你想显示的内容</li>
+        </ul>
+        <p><b>少数标签是自闭合的，不需要结束标签：</b></p>
+        <pre style="color: black;line-height: 1.0;background-color: white;width: fit-content;margin: auto;opacity: 0.7;border-radius: 10px;border: 4px solid white">
+            <code style="font-size: x-large;font-variant-ligatures: none;">
+&lt;br&gt; &lt;!-- 换行 ->
+&lt;img src="photo.jpg"&gt;  &lt;!-- 图片 -->
+            </code>
+        </pre>
+    </div>
+</div>
+<br>
+
+<div class="part3and4" style="position: relative;">
+    <div class="part3" style="position: relative;z-index: 1">
+        <h2>三、你的第一个网页</h2>
+        <div style="display: flex;gap: 20px">
+            <div style="flex:1;position: relative;overflow: hidden;">
+                <pre style="justify-content: center;display: flex">
+                    <code>
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;我的第一个网页&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;欢迎来到我的网站！&lt;/h1&gt;
+    &lt;p&gt;这是我学习 HTML 创建的第一个网页。&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+                    </code>
+                </pre>
+            </div>
+            <div style="flex:1;">
+                <iframe src="html/class%201%20part3-1.html" style="width: 90%;justify-content: center"></iframe>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="part4" style="position: relative;z-index: 1">
+        <h2>四、逐行解释——把它们背下来</h2>
+        <div>
+            <ul>
+                <li>
+                    <p>第 1 行：<code>&lt;!DOCTYPE html&gt;</code></p>
+                    <p>文档类型声明。告诉浏览器“我是 HTML5 页面”，必须写在最开头。</p>
+                </li>
+                <li>
+                    <p>第 2 行：<code>&lt;html lang="zh-CN"&gt;</code></p>
+                    <p>整个页面的根元素。lang="zh-CN" 表示页面语言是中文，有助于搜索引擎和屏幕阅读器。</p>
+                </li>
+                <li>
+                    <p>第 3 行：<code>&lt;head&gt;</code></p>
+                    <p>网页的“后台信息区”。里面的内容不会直接显示在页面上，但很重要。</p>
+                </li>
+                <li>
+                    <p>第 4 行：<code>&lt;meta charset="UTF-8"&gt;</code></p>
+                    <p>设置字符编码为 UTF-8，这样才能正常显示中文，否则会乱码。</p>
+                </li>
+                <li>
+                    <p>第 5 行：<code>&lt;title&gt;</code></p>
+                    <p>浏览器标签页上显示的那个标题。</p>
+                </li>
+                <Li>
+                    <p>第 6 行：<code>&lt;/head&gt;</code></p>
+                    <p>关闭 head 区</p>
+                </Li>
+                <li>
+                    <p>第 7 行：<code>&lt;body&gt;</code></p>
+                    <p>所有你在网页上能看到的文字、图片、按钮，都必须写在 body 里面。</p>
+                </li>
+                <li>
+                    <p>第 8 行：<code>&lt;h1&gt;</code></p>
+                    <p>一级标题，最大最醒目。</p>
+                </li>
+                <li>
+                    <p>第 10、11 行：<code>&lt;/body&gt;</code> 和 <code>&lt/;html&gt;</code></p>
+                    <p>收尾闭合</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <video class="part-3and4-video" autoplay muted loop playsinline style="
+                    position: absolute;
+                    pointer-events: none;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: 0;
+                    border-radius: 10px;
+                ">
+        <source src="../../Main_background_video.mp4" type="video/mp4">
+    </video>
+</div>
+<br>
+<div style="display:flex;position: relative;">
+    <p style="flex: 1"></p>
+    <a href="html.html" style="font-size: large;flex:1;text-align: center;color: inherit;text-decoration: none;background:none">返回目录</a>
+    <a href="class%202.html" style="font-size: large;flex:1;text-align: center;color: inherit;text-decoration: none;background: none">下一个</a>
+</div>
+
+<script>
+    const part3 = document.querySelector('.part3')
+    const part4 = document.querySelector('.part4')
+    const part_3and4_video = document.querySelector('.part-3and4-video')
+    const part_3and4 = document.querySelector('.part3and4')
+    part3.addEventListener('mouseenter', () => {
+        part_3and4_video.style.filter = 'none'
+    })
+
+    part3.addEventListener('mouseleave', () => {
+        part_3and4_video.style.filter = 'blur(10px)'
+    })
+
+    part4.addEventListener('mouseenter', () => {
+        part_3and4_video.style.filter = 'none'
+        part3.style.backdropFilter = 'blur(0px)'
+    })
+
+    part4.addEventListener('mouseleave', () => {
+        part_3and4_video.style.filter = 'blur(10px)'
+    })
+
+    part_3and4.addEventListener('mouseenter', () => {
+        part_3and4_video.style.filter = 'none'
+    })
+
+    part_3and4.addEventListener('mouseleave', () => {
+        part_3and4_video.style.filter = 'blur(10px)'
+    })
+</script>
+</body>
+</html>

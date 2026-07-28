@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>标题、段落与文字格式化</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+<h1 style="width: fit-content;margin: auto">标题、段落与文字格式化</h1>
+<p style="text-align: center">关键词:标题标签（<code>&lt;h1&gt;</code> ~ <code>&lt;h6&gt;</code>）、段落（<code>&lt;p&gt;</code>）、换行（<code>&lt;br&gt;</code>）、分割线（<code>&lt;hr&gt;</code>）、加粗（<code>&lt;strong&gt;</code> / <code>&lt;b&gt;</code>）、<br>倾斜（<code>&lt;em&gt;</code> / <code>&lt;i&gt;</code>）、高亮（<code>&lt;mark&gt;</code>）、删除线（<code>&lt;del&gt;</code>）、块级元素 vs 行内元素</p>
+<div style="position: relative;">
+    <video class="part-1-video" autoplay muted loop playsInline style=
+            "z-index: 0;
+            position: absolute;
+            pointer-events: none;
+            width: 100%;
+            top:0;
+            left:0;
+            height:100%;
+            object-fit:cover;
+            border-radius: 10px;
+            filter: blur(10px);">
+        <source src="../../Main_background_video.mp4" type="video/mp4">
+    </video>
+    <div class="part1" style="z-index: 1;position: relative;transform: scale(0.9);border-radius: 10px;">
+        <h2><code>一、标题、段落与文字格式化</code></h2>
+        <p>标题从大到小，一共六级：</p>
+        <div style="display: flex;position: relative">
+            <pre style="flex:0.9;justify-content: center;display: flex">
+                <code>
+&lt;h1>一级标题——最大，通常整个页面只有一个&lt;/h1&gt;
+&lt;h2>二级标题&lt;/h2&gt;
+&lt;h3>三级标题&lt;/h3&gt;
+&lt;h4>四级标题&lt;/h4&gt;
+&lt;h5>五级标题&lt;/h5&gt;
+&lt;h6>六级标题——最小&lt;/h6&gt;
+                </code>
+            </pre>
+            <div style="flex:1;position: relative">
+                <h1>一级标题——最大，通常整个页面只有一个</h1>
+                <h2>二级标题</h2>
+                <h3>三级标题</h3>
+                <h4>四级标题</h4>
+                <h5>五级标题</h5>
+                <h6>六级标题——最小</h6>
+            </div>
+        </div>
+        <h3><b>要点：</b></h3>
+        <ul>
+            <li>标题是块级元素，独占一行</li>
+            <li>浏览器会给它们加粗，大小递减</li>
+            <li><code>&lt;h1&gt;</code> 一个页面最好只用一次（SEO 要求）</li>
+        </ul>
+    </div>
+</div>
+<br>
+<div style="position: relative;transform: scale(0.9);border-radius: 10px;">
+    <h2><code>二、段落标签 &lt;p&gt;</code></h2>
+    <div style="position: relative;display: flex;border-radius: 10px;;border: 1px solid black;">
+        <pre style="flex:1;justify-content: center;display: flex;position: relative">
+            <code>
+&lt;p&gt;这是一个段落。浏览器会自动在段落前后留出间距。&lt;/p&gt;
+&lt;p&gt;这是另一个段落。多个空格    和换行
+在 HTML 中都会被合并成一个空格。&lt;/p&gt;
+            </code>
+        </pre>
+        <div style="flex:1;position: relative;justify-content: center;display: flex">
+            <div>
+                <p>这是一个段落。浏览器会自动在段落前后留出间距。</p>
+                <p>这是另一个段落。多个空格    和换行
+                    在 HTML 中都会被合并成一个空格。</p>
+            </div>
+        </div>
+    </div>
+    <h3><b>要点:</b></h3>
+    <ul>
+        <li>也是块级元素，独占一行</li>
+        <li>段落之间有默认间距</li>
+    </ul>
+</div>
+<br>
+
+<div style="position: relative;transform: scale(0.9);border-radius: 10px;">
+    <h2><code>三、强制换行 &lt;br&gt; 和分割线 &lt;hr&gt;</code></h2>
+    <div style="position: relative;display: flex;border-radius: 10px;border: 1px solid black;">
+        <pre style="flex: 1;justify-content: center;display: flex;position: relative">
+            <code>
+&lt;p&gt;第一行&lt;br&gt;第二行&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;上面有一条横线&lt;/p&gt;
+            </code>
+        </pre>
+        <div style="flex:1;position: relative;justify-content: center;display: flex">
+            <div>
+                <p>第一行<br>第二行</p>
+                <hr>
+                <p>上面有一条横线</p>
+            </div>
+        </div>
+    </div>
+    <ul>
+        <li><code>&lt;br&gt;：行内换行，不产生间距</code></li>
+        <li><code>&lt;hr&gt;：一条水平线，表示主题切换</code></li>
+    </ul>
+    <p>两者都是自闭合标签。</p>
+</div>
+
+<div style="position: relative;transform: scale(0.9);border-radius: 10px;">
+    <h2>四、文字格式化标签</h2>
+    <table style="width: 100%;table-layout: fixed;text-align: center;">
+        <tr>
+            <th>标签</th>
+            <th>效果</th>
+            <th>说明</th>
+        </tr>
+        <tr>
+            <td>&lt;strong&gt;</td>
+            <td><strong>加粗</strong></td>
+            <td>有“重要”语义，屏幕阅读器会重读</td>
+        </tr>
+        <tr>
+            <td>&lt;b&gt;</td>
+            <td><b>加粗</b></td>
+            <td>纯样式，无语义</td>
+        </tr>
+        <tr>
+            <td>&lt;em&gt;</td>
+            <td><em>倾斜</em></td>
+            <td>有“强调”语义</td>
+        </tr>
+        <tr>
+            <td>&lt;i&gt;</td>
+            <td><i>倾斜</i></td>
+            <td>纯样式（图标也常用它）</td>
+        </tr>
+        <tr>
+            <td>&lt;mark&gt;</td>
+            <td><mark>高亮</mark></td>
+            <td>标记/高亮背景</td>
+        </tr>
+        <tr>
+            <td>&lt;del&gt;</td>
+            <td><del>删除线</del></td>
+            <td>表示被删除的内容</td>
+        </tr>
+        <tr>
+            <td>&lt;u&gt;</td>
+            <td><u>下划线</u></td>
+            <td>纯样式下划线</td>
+        </tr>
+    </table>
+    <br>
+    <div style="position: relative;display: flex;border-radius: 10px;border: 1px solid black;">
+        <div style="flex:1;justify-content: center;display: flex;position: relative">
+            &lt;p&gt;这件商品 &lt;del&gt;原价999元&lt;/del&gt; &lt;strong&gt;现价599元&lt;/strong&gt;，&lt;mark&gt;限时特惠&lt;/mark&gt;！&lt;/p&gt;
+        </div>
+        <div style="flex:1;position: relative;justify-content: center;display: flex">
+            <p>这件商品 <del>原价999元</del> <strong>现价599元</strong>，<mark>限时特惠</mark>！</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const part1 = document.querySelector('.part1')
+    const part1_video = document.querySelector('.part-1-video')
+    part1.addEventListener("mouseenter", () => {
+        part1.style.transform = "scale(1)"
+        part1.style.boxShadow = "0 0 20px rgba(0, 0, 0, 0.5)"
+        part1_video.style.filter = 'none'
+        part1.style.transition = "all .8s ease"
+        part1_video.style.transition = "all .8s ease"
+    })
+
+    part1.addEventListener("mouseleave", () => {
+        part1.style.transform = "scale(0.9)"
+        part1.style.transition = "all .8s ease"
+        part1_video.style.transition = "all .8s ease"
+        part1.style.boxShadow = "none"
+        part1_video.style.filter = 'blur(10px)'
+
+    })
+</script>
+</body>
+</html>

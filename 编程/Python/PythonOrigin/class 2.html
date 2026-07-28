@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第2章：print() 函数——彻底理解</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../../../preview.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #1e293b;
+        }
+        h1 {
+            text-align: center;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        h3 {
+            color: #334155;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        pre {
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 1px;
+            border-radius: 5px;
+            font-size: inherit;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgb(255 255 255 / 0.5);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: rgb(248 250 252 / 0.5);
+            color: #0f172a;
+            font-weight: 600;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: rgb(248 250 252 / 0.5);
+        }
+        .section-container {
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            transition: all 0.8s ease;
+        }
+        .code-inline {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        strong {
+            color: #0f172a;
+        }
+        .emphasis-note {
+            background-color: #fef9c3;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .code-output-row {
+            align-items: stretch;
+            display: flex;
+            gap: 20px;
+        }
+        .code-output-row .code-col,
+        .code-output-row .output-col {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+        }
+        .output-col pre {
+            flex: 1;
+            background-color: rgb(248 250 252 / 0.5);
+            border: 2px dashed #cbd5e1;
+        }
+        .code-col pre {
+            flex: 1;
+        }
+
+        .code-col pre::-webkit-scrollbar,
+        .output-col pre::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-col pre::-webkit-scrollbar-track,
+        .output-col pre::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb,
+        .output-col pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb:hover,
+        .output-col pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body>
+<video autoplay muted loop playsinline style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: -1;
+                    border-radius: 10px;
+                ">
+    <source src="../../../Main_background_video.mp4" type="video/mp4">
+</video>
+
+<h1>第2章：<code>print()</code> 函数——彻底理解</h1>
+
+<p>上一章我们只用了 <code>print("Hello, World!")</code>，但 <code>print()</code> 能做的事情远不止这么简单。这一章我们把这个函数彻底拆解明白。</p>
+
+<hr>
+
+<!-- 2.1 函数是什么 -->
+<div class="section-container" id="class-2-2.1">
+    <h2>2.1 函数是什么——先理解这个概念</h2>
+    <p>在讲 <code>print()</code> 之前，必须先搞懂<strong>函数</strong>是什么。</p>
+    <p><strong>函数的本质</strong>：一段有名字的代码，你叫它的名字，它就执行那段代码。</p>
+    <p>打个比方：</p>
+    <p>你有一个机器人，你对它说"扫地"，它就开始执行扫地的动作。"扫地"就是函数名，你喊"扫地"就是在<strong>调用</strong>函数。</p>
+    <p>在 Python 中：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("你好")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>你好</code></pre>
+        </div>
+    </div>
+    <ul>
+        <li><code>print</code> → 函数的名字</li>
+        <li><code>()</code> → 调用运算符，意思是"执行这个函数"</li>
+        <li><code>"你好"</code> → 传给函数的<strong>参数</strong>，告诉函数具体要做什么</li>
+    </ul>
+    <p><strong>关键区别</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print       # 这是函数对象本身，不会执行，只是引用这个函数
+print()     # 这是调用函数，会执行，但没传参数
+print("Hi") # 这是调用函数并传递参数 "Hi"</code></pre>
+        </div>
+        <div class="output-col" >
+            <pre><code>
+
+Hi</code></pre>
+        </div>
+    </div>
+    <p>你可以验证：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>>>> print</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>&lt;built-in function print&gt;</code></pre>
+        </div>
+    </div>
+    <p><code>print</code> 不带括号时，Python 告诉你它是什么东西（一个内建函数），而不会执行它。</p>
+</div>
+
+<!-- 2.2 参数结构 -->
+<div class="section-container" id="class-2-2.2">
+    <h2>2.2 <code>print()</code> 的参数结构</h2>
+    <p><code>print()</code> 的完整签名（定义）是这样的：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print(*objects, sep=' ', end='\n', file=None, flush=False)</code></pre>
+        </div>
+    </div>
+    <p>我们现在逐一拆解。</p>
+
+    <h3>参数一：<code>*objects</code> —— 要打印的内容</h3>
+    <p>星号 <code>*</code> 的意思是：<strong>可以接收任意多个参数</strong>。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果")
+print("苹果", "香蕉")
+print("苹果", "香蕉", "橘子")
+print(1, 2, 3, 4, 5, 6, 7, 8)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果
+苹果 香蕉
+苹果 香蕉 橘子
+1 2 3 4 5 6 7 8</code></pre>
+        </div>
+    </div>
+    <p>你可以传1个、2个、100个参数，<code>print()</code> 会依次打印它们。</p>
+    <p><strong>"参数"和"参数之间用逗号分隔"这个动作本身，也是语法的一部分：</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果", "香蕉", "橘子")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果 香蕉 橘子</code></pre>
+        </div>
+    </div>
+    <p>Python 解释器读这行代码时的思考过程：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>看到 print → 函数名
+看到 ( → 进入参数收集模式
+看到 "苹果" → 第一个参数，是一个字符串
+看到 , → 参数分隔符，说明后面还有参数
+看到 "香蕉" → 第二个参数
+看到 , → 参数分隔符
+看到 "橘子" → 第三个参数
+看到 ) → 参数收集结束，共收集到3个参数
+开始调用 print，传入这3个参数</code></pre>
+        </div>
+    </div>
+
+    <h3>参数二：<code>sep=' '</code> —— 分隔符</h3>
+    <p><code>sep</code> 是 <strong>sep</strong>arator（分隔符）的缩写。</p>
+    <p><strong>默认值是一个空格</strong> <code>' '</code>。</p>
+    <p>这意味着，当你传多个参数时，<code>print()</code> 会在每两个参数之间插入一个空格：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果", "香蕉", "橘子")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果 香蕉 橘子</code></pre>
+        </div>
+    </div>
+    <p><code>"苹果"</code> 和 <code>"香蕉"</code> 之间自动插入了一个空格，<code>"香蕉"</code> 和 <code>"橘子"</code> 之间也插入了一个空格。</p>
+    <p><strong>修改 sep</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果", "香蕉", "橘子", sep=" | ")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果 | 香蕉 | 橘子</code></pre>
+        </div>
+    </div>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果", "香蕉", "橘子", sep="")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果香蕉橘子</code></pre>
+        </div>
+    </div>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("2024", "01", "15", sep="-")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>2024-01-15</code></pre>
+        </div>
+    </div>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("A", "B", "C", sep=" -&gt; ")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>A -&gt; B -&gt; C</code></pre>
+        </div>
+    </div>
+    <p><strong>sep 只在有多个参数时才有意义</strong>。如果只有一个参数，没什么需要分隔的，sep 不起作用：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("Hello", sep="---")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>Hello</code></pre>
+        </div>
+    </div>
+    <p><strong>sep 没派上用场</strong></p>
+
+    <h3>参数三：<code>end='\n'</code> —— 结束符</h3>
+    <p><code>end</code> 是每次打印结束后自动追加的内容。</p>
+    <p><strong>默认值是换行符 <code>\n</code></strong>。</p>
+    <p>什么叫换行符？</p>
+    <p>计算机中，有些字符是"不可见字符"，它们不代表任何可以显示的图形，而是代表一个<strong>控制指令</strong>。</p>
+    <ul>
+        <li><code>\n</code> → newline，换行。让光标移到下一行的开头</li>
+        <li><code>\t</code> → tab，制表符。相当于按一下 Tab 键</li>
+        <li><code>\\</code> → 反斜杠本身</li>
+        <li><code>\"</code> → 双引号（在字符串内部使用）</li>
+    </ul>
+    <p>当你写：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("第一行")
+print("第二行")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>第一行
+第二行</code></pre>
+        </div>
+    </div>
+    <p>实际发生的事：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>输出 "第一行"
+输出 "\n"    （end 的默认值）
+输出 "第二行"
+输出 "\n"</code></pre>
+        </div>
+    </div>
+    <p>所以屏幕上显示：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>第一行
+第二行</code></pre>
+        </div>
+    </div>
+    <p>光标现在停在第三行的开头（因为最后又输出了一次 <code>\n</code>）。</p>
+    <p><strong>修改 end</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("Hello", end="")
+print("World")
+#（第一行末尾没有换行，第二行紧跟着输出）</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>HelloWorld</code></pre>
+        </div>
+    </div>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("加载中", end="...")
+print("完成！")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>加载中...完成！</code></pre>
+        </div>
+    </div>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("A", end=" -&gt; ")
+print("B", end=" -&gt; ")
+print("C")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>A -&gt; B -&gt; C</code></pre>
+        </div>
+    </div>
+    <p><strong>end 每次 print 都会生效，不管传了几个参数</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果", "香蕉", end="【结束】\n")
+print("橘子")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果 香蕉【结束】
+橘子</code></pre>
+        </div>
+    </div>
+
+    <h3>参数四和五：<code>file</code> 和 <code>flush</code></h3>
+    <p>这两个参数暂时不讲，因为它们涉及文件操作和输出缓冲，放在文件操作章节详细展开。</p>
+    <p>简单说：</p>
+    <ul>
+        <li><code>file</code> 可以让你把输出写入文件而不是屏幕</li>
+        <li><code>flush</code> 控制是否立即刷新输出缓冲区</li>
+    </ul>
+    <p>现在你只需要知道它们存在，默认情况下不需要管。</p>
+</div>
+
+<!-- 2.3 完整实验 -->
+<div class="section-container" id="class-2-2.3">
+    <h2>2.3 print 的完整实验</h2>
+    <p>我们来做一个实验，把所有参数组合起来：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("A", "B", "C", sep=" | ", end=" &lt;&lt;&lt;END&gt;&gt;&gt;\n")
+print("D", "E", sep=" + ", end="\n\n")
+print("结束")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>A | B | C &lt;&lt;&lt;END&gt;&gt;&gt;
+D + E
+
+结束</code></pre>
+        </div>
+    </div>
+    <p><strong>逐行分析</strong>：</p>
+    <p>第一行 <code>print("A", "B", "C", sep=" | ", end=" &lt;&lt;&lt;END&gt;&gt;&gt;\n")</code>：</p>
+    <ul>
+        <li>三个参数："A"、"B"、"C"</li>
+        <li>sep=" | " → 参数间用 " | " 分隔</li>
+        <li>打印内容：<code>A | B | C</code></li>
+        <li>end=" &lt;&lt;&lt;END&gt;&gt;&gt;\n" → 末尾追加 " &lt;&lt;&lt;END&gt;&gt;&gt;" 然后换行</li>
+    </ul>
+    <p>第二行 <code>print("D", "E", sep=" + ", end="\n\n")</code>：</p>
+    <ul>
+        <li>两个参数："D"、"E"</li>
+        <li>sep=" + " → 参数间用 " + " 分隔</li>
+        <li>打印内容：<code>D + E</code></li>
+        <li>end="\n\n" → 末尾追加两个换行符，产生一个空行</li>
+    </ul>
+    <p>第三行 <code>print("结束")</code>：</p>
+    <ul>
+        <li>正常打印 "结束" 后换行</li>
+    </ul>
+</div>
+
+<!-- 2.4 打印不同类型 -->
+<div class="section-container" id="class-2-2.4">
+    <h2>2.4 print 打印不同类型的数据</h2>
+    <p><code>print()</code> 可以打印任何类型的数据：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print(123)           # 整数
+print(3.14)          # 浮点数
+print(True)          # 布尔值
+print(None)          # None
+print([1, 2, 3])     # 列表</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>123
+3.14
+True
+None
+[1, 2, 3]</code></pre>
+        </div>
+    </div>
+    <p><strong>print 内部做了什么事？</strong> 它调用了每个参数的 <code>__str__()</code> 方法，把参数转换成字符串再输出。</p>
+    <p>所以 <code>print(123)</code> 实际上等价于 <code>print(str(123))</code>。</p>
+    <p>你可以验证：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print(123)
+print(str(123))</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>123<br>123</code></pre>
+        </div>
+    </div>
+    <p>两行输出完全一样。</p>
+</div>
+
+<!-- 2.5 返回值 -->
+<div class="section-container" id="class-2-2.5">
+    <h2>2.5 print 的返回值</h2>
+    <p><code>print()</code> 是一个函数，函数都有返回值。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>result = print("Hello")
+print(result)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>Hello
+None</code></pre>
+        </div>
+    </div>
+    <p><strong><code>print()</code> 的返回值是 <code>None</code>。</strong></p>
+    <p>第一行：<code>print("Hello")</code> 执行，屏幕显示 "Hello"，然后返回 <code>None</code>，<code>None</code> 被赋值给 <code>result</code>。</p>
+    <p>第二行：<code>print(result)</code> 就是 <code>print(None)</code>，屏幕显示 "None"。</p>
+    <p>这是一个常见的混淆点：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("Hello")      # 打印了 Hello，返回值是 None
+x = print("Hello")  # 打印了 Hello，但 x 的值是 None，不是 "Hello"</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 2.6 常见错误 -->
+<div class="section-container" id="class-2-2.6">
+    <h2>2.6 常见错误</h2>
+    <p><strong>错误一：忘记逗号，用空格分隔参数</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果" "香蕉" "橘子")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果香蕉橘子</code></pre>
+        </div>
+    </div>
+    <p>相邻的两个字符串字面量会被 Python 自动拼接。这不是 <code>print()</code> 的功能，是 Python 的字符串字面量拼接规则。</p>
+    <p>这等价于：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果香蕉橘子")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果香蕉橘子</code></pre>
+        </div>
+    </div>
+    <p><strong>三个字符串在代码执行前就合成一个了</strong>，不是 print 的作用。</p>
+    <p>如果你想在 print 中传多个参数，必须用逗号：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("苹果", "香蕉", "橘子")    # 正确，三个参数
+print("苹果" "香蕉" "橘子")      # 错误理解，这只是一个参数</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>苹果 香蕉 橘子
+苹果香蕉橘子</code></pre>
+        </div>
+    </div>
+
+    <p><strong>错误二：变量用引号括起来</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>name = "小明"
+print("name")    # 输出 name，不是小明
+print(name)      # 输出 小明</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>name
+小明</code></pre>
+        </div>
+    </div>
+    <p>加了引号就是字符串，没加引号就是变量。</p>
+
+    <p><strong>错误三：用 + 拼接不同类型</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>age = 18
+print("我今年" + age + "岁")    <br># 报错！字符串和整数不能相加</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>Traceback (most recent call last):
+  File "wrong_age.py", line 2, in &lt;module&gt;
+    print("我今年" + age + "岁")    # 报错！字符串和整数不能相加
+          ~~~~~~~~~^~~~~
+TypeError: can only concatenate str (not "int") to str</code></pre>
+        </div>
+    </div>
+    <p>解决方法：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>age = 18<br>print("我今年" + str(age) + "岁")    # 先转换类型
+print("我今年", age, "岁")           # 用逗号分隔，自动加空格
+print(f"我今年{age}岁")              # 用 f-string（后面会讲）</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>我今年18岁
+我今年 18 岁
+我今年18岁</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 2.7 本章总结 -->
+<div class="section-container" id="class-2-2.7">
+    <h2>2.7 本章总结</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>概念</th>
+            <th>说明</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>函数调用</td>
+            <td>函数名 + 括号 + 参数，如 <code>print("Hi")</code></td>
+        </tr>
+        <tr>
+            <td><code>*objects</code></td>
+            <td>可以传任意多个参数，用逗号分隔</td>
+        </tr>
+        <tr>
+            <td><code>sep</code></td>
+            <td>参数间的分隔符，默认是空格 <code>' '</code></td>
+        </tr>
+        <tr>
+            <td><code>end</code></td>
+            <td>末尾追加的内容，默认是换行 <code>'\n'</code></td>
+        </tr>
+        <tr>
+            <td><code>\n</code></td>
+            <td>换行符，光标移到下一行开头</td>
+        </tr>
+        <tr>
+            <td><code>print()</code> 返回值</td>
+            <td>总是 <code>None</code></td>
+        </tr>
+        <tr>
+            <td>不加引号</td>
+            <td>Python 会当变量名处理</td>
+        </tr>
+        <tr>
+            <td>加引号</td>
+            <td>Python 会当字符串字面量处理</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    document.querySelectorAll('.section-container').forEach(section => {
+        section.addEventListener('mouseenter', () => {
+            if (section.id === 'class-2-2.2')
+                {
+                    section.style.transform = 'scale(1.01)';
+                } else {
+                section.style.transform = 'scale(1.03)';
+            }
+            section.style.backdropFilter = 'none'
+            section.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)'
+        })
+
+        section.addEventListener('mouseleave', () => {
+            section.style.transform = 'scale(1)';
+            section.style.backdropFilter = 'blur(10px)'
+            section.style.boxShadow = 'none'
+        })
+    })
+</script>
+</body>
+</html>

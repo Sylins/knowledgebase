@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1章：Python 是什么？怎么运行第一行代码？</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../../../preview.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #1e293b;
+        }
+        h1 {
+            text-align: center;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        pre {
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 1px;
+            border-radius: 5px;
+            font-size: inherit;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgb(255 255 255 / 0.5);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: rgb(248 250 252 / 0.5);
+            color: #0f172a;
+            font-weight: 600;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: rgb(248 250 252 / 0.5);
+        }
+        .section-container {
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            transition: all 0.8s ease;
+        }
+        .code-inline {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        strong {
+            color: #0f172a;
+        }
+        .emphasis-note {
+            background-color: #fef9c3;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .code-output-row {
+            align-items: stretch;
+            display: flex;
+            gap: 20px;
+        }
+        .code-output-row .code-col,
+        .code-output-row .output-col {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+        }
+        .output-col pre {
+            flex: 1;
+            background-color: rgb(248 250 252 / 0.5);
+            border: 2px dashed #cbd5e1;
+        }
+
+        .code-col pre {
+            flex: 1;
+        }
+
+        .code-col pre::-webkit-scrollbar,
+        .output-col pre::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-col pre::-webkit-scrollbar-track,
+        .output-col pre::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb,
+        .output-col pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb:hover,
+        .output-col pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body>
+<video autoplay muted loop playsinline style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: -1;
+                    border-radius: 10px;
+                ">
+    <source src="../../../Main_background_video.mp4" type="video/mp4">
+</video>
+
+<h1>第1章：Python 是什么？怎么运行第一行代码？</h1>
+
+<hr>
+
+<!-- 1.1 Python 的本质 -->
+<div class="section-container" id="class-1-1.1">
+    <h2>1.1 Python 的本质</h2>
+    <p>你写的代码，计算机看不懂。计算机只认识一种东西：<strong>机器指令</strong>，就是一串二进制的数字。</p>
+    <p>比如，在某个芯片上，这串数字：</p>
+    <pre><code>10110000 01100001</code></pre>
+    <p>可能表示"把数字 97 放进某个寄存器"。</p>
+    <p>人类显然没法直接用这种方式写程序。于是人们发明了<strong>编程语言</strong>，作为人和计算机之间的翻译官。</p>
+    <p>Python 就是这个翻译官之一。</p>
+    <p>当你运行 Python 程序时，发生的事情是这样的：</p>
+    <div class="code-output-row">
+        <div class="code-col" style="display: flex; align-items: center; justify-content: center;">
+            <pre style="flex: 1;text-align: center"><code>你写的代码（.py 文件）<br>↓
+Python 解释器读取代码<br>↓
+解释器把代码翻译成字节码（.pyc）<br>↓
+Python 虚拟机执行字节码<br>↓
+计算机硬件执行操作</code></pre>
+        </div>
+    </div>
+    <p><strong>关键理解</strong>：你写的 <code>.py</code> 文件本身不会被执行，它只是文本。是 Python 解释器这个<strong>程序</strong>读取它、理解它、然后代你操作计算机。</p>
+</div>
+
+<!-- 1.2 什么是"解释型语言" -->
+<div class="section-container" id="class-1-1.2">
+    <h2>1.2 什么是"解释型语言"</h2>
+    <p>编程语言分为两大阵营：</p>
+    <p><strong>编译型</strong>（C、C++、Rust、Go）：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>源代码 → 编译器 → 可执行文件(.exe) → 用户直接双击运行</code></pre>
+        </div>
+
+    </div>
+    <ul>
+        <li>编译是一次性的，生成的可执行文件可以脱离编译器独立运行</li>
+        <li>运行速度快，因为已经是机器码了</li>
+        <li>但修改代码后必须重新编译</li>
+    </ul>
+    <p><strong>解释型</strong>（Python、JavaScript、Ruby）：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>源代码 → 解释器 → 一行一行地边翻译边执行</code></pre>
+        </div>
+    </div>
+    <ul>
+        <li>没有独立的可执行文件，必须通过解释器运行</li>
+        <li>每次运行都要经过解释器</li>
+        <li>好处是：改了代码立刻就能跑，不用编译</li>
+    </ul>
+    <p><strong>Python 的灰色地带</strong>：Python 实际上会先把你的代码编译成"字节码"（<code>.pyc</code> 文件），然后在 Python 虚拟机上执行字节码。这和 Java 很像。所以 Python 不是"纯解释型"，它有一个隐式的编译步骤，但这个过程对你是透明的，你感受不到。</p>
+</div>
+
+<!-- 1.3 为什么选择 Python 作为第一门语言 -->
+<div class="section-container" id="class-1-1.3">
+    <h2>1.3 为什么选择 Python 作为第一门语言</h2>
+    <p>对比 C 语言的 Hello World：</p>
+    <div class="code-output-row" style="align-items: stretch;display: flex;">
+        <div class="code-col" style="flex: 1;display: flex;">
+                <pre style="flex: 1"><code>#include &lt;stdio.h&gt;
+
+int main() {
+printf("Hello, World!\n");
+return 0;
+}</code></pre>
+        </div>
+        <div class="output-col" style="flex: 1;display: flex;">
+            <pre style="flex: 1"><code>Hello, World!</code></pre>
+        </div>
+    </div>
+    <p>你需要理解：</p>
+    <ul>
+        <li><code>#include</code> 是什么（预处理器指令）</li>
+        <li><code>&lt;stdio.h&gt;</code> 是什么（标准输入输出头文件）</li>
+        <li>为什么有一个 <code>main</code> 函数</li>
+        <li><code>int</code> 是什么（返回值类型）</li>
+        <li><code>\n</code> 是什么（转义字符）</li>
+        <li><code>return 0</code> 是干什么的</li>
+    </ul>
+    <p>而 Python：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("Hello, World!")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>Hello, World!</code></pre>
+        </div>
+    </div>
+    <p>你只需要理解一件事：<code>print</code> 是"打印"的意思。</p>
+    <p>这就是 Python 设计哲学的核心：<strong>代码是写给人看的，顺便让计算机执行。</strong></p>
+</div>
+
+<!-- 1.4 安装 Python——到底安装了什么 -->
+<div class="section-container" id="class-1-1.4">
+    <h2>1.4 安装 Python——到底安装了什么</h2>
+    <p>当你从 python.org 下载安装包并安装后，你的计算机上多了几样东西：</p>
+    <p><strong>1. Python 解释器</strong></p>
+    <ul>
+        <li>这是一个可执行文件，Windows 上叫 <code>python.exe</code></li>
+        <li>它的作用就是读取 <code>.py</code> 文件并执行</li>
+        <li>位置通常在 <code>C:\Users\你的用户名\AppData\Local\Programs\Python\Python312\</code></li>
+    </ul>
+    <p><strong>2. pip（包管理工具）</strong></p>
+    <ul>
+        <li><code>pip</code> 是 Python 的"应用商店"</li>
+        <li>用来下载别人写好的代码库（比如数据科学用的 numpy、pandas）</li>
+        <li>命令：<code>pip install 包名</code></li>
+    </ul>
+    <p><strong>3. IDLE（简易编辑器）</strong></p>
+    <ul>
+        <li>Python 自带的代码编辑器</li>
+        <li>可以用，但不推荐，因为它功能太简陋了</li>
+    </ul>
+    <p><strong>4. 标准库</strong></p>
+    <ul>
+        <li>Python 自带的"工具箱"，包含处理文件、网络、日期等各种功能的模块</li>
+        <li>你不用安装任何东西就能用它们</li>
+    </ul>
+</div>
+
+<!-- 1.5 PATH 环境变量 -->
+<div class="section-container" id="class-1-1.5">
+    <h2>1.5 PATH 环境变量——为什么必须勾选"Add Python to PATH"</h2>
+    <p>这是安装 Python 时最容易出错的地方。</p>
+    <p><strong>问题</strong>：当你打开命令行输入 <code>python</code>，计算机怎么知道 <code>python.exe</code> 在哪里？</p>
+    <p><strong>答案</strong>：计算机会去一个叫 PATH 的列表里挨个找。</p>
+    <p>PATH 就是一系列文件夹路径：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+                <pre><code>C:\Windows\System32
+C:\Windows
+C:\Program Files\...</code></pre>
+        </div>
+    </div>
+    <p>当你在命令行输入一个命令，操作系统会：</p>
+    <ol>
+        <li>先去当前文件夹找这个命令</li>
+        <li>如果找不到，去 PATH 列表里的每个文件夹按顺序找</li>
+        <li>全找不到，就报错：<code>'python' 不是内部或外部命令</code></li>
+    </ol>
+    <p>如果你没勾选 "Add Python to PATH"，Python 的安装目录就不在 PATH 里，命令行就找不到 <code>python</code>。</p>
+    <p><strong>解决方案</strong>：</p>
+    <ul>
+        <li>重新安装 Python 并勾选</li>
+        <li>或者手动把 Python 路径加到系统环境变量里</li>
+    </ul>
+</div>
+
+<!-- 1.6 第一个程序——逐字节拆解 -->
+<div class="section-container" id="class-1-1.6">
+    <h2>1.6 第一个程序——逐字节拆解</h2>
+    <p>创建文件 <code>hello.py</code>，内容：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("Hello, World!")</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>Hello, World!</code></pre>
+        </div>
+    </div>
+    <p>现在我们来拆解这行代码的每一个字符：</p>
+    <table>
+        <thead>
+        <tr>
+            <th>字符</th>
+            <th>含义</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr><td><code>p</code></td><td>函数名的第一个字母</td></tr>
+        <tr><td><code>r</code></td><td>函数名的第二个字母</td></tr>
+        <tr><td><code>i</code></td><td>函数名的第三个字母</td></tr>
+        <tr><td><code>n</code></td><td>函数名的第四个字母</td></tr>
+        <tr><td><code>t</code></td><td>函数名的第五个字母</td></tr>
+        <tr><td><code>(</code></td><td><strong>左括号</strong>：告诉 Python "我要调用函数了，下面是参数"</td></tr>
+        <tr><td><code>"</code></td><td><strong>双引号</strong>：告诉 Python "下面是一个字符串的开始"</td></tr>
+        <tr><td><code>H</code></td><td>字符串的第一个字符</td></tr>
+        <tr><td><code>e</code></td><td>字符串的第二个字符</td></tr>
+        <tr><td><code>l</code></td><td>字符串的第三个字符</td></tr>
+        <tr><td><code>l</code></td><td>字符串的第四个字符</td></tr>
+        <tr><td><code>o</code></td><td>字符串的第五个字符</td></tr>
+        <tr><td><code>,</code></td><td>字符串中的逗号字符</td></tr>
+        <tr><td><code> </code></td><td>空格字符</td></tr>
+        <tr><td><code>W</code></td><td>字符串的第八个字符</td></tr>
+        <tr><td><code>o</code></td><td>字符串的第九个字符</td></tr>
+        <tr><td><code>r</code></td><td>字符串的第十个字符</td></tr>
+        <tr><td><code>l</code></td><td>字符串的第十一个字符</td></tr>
+        <tr><td><code>d</code></td><td>字符串的第十二个字符</td></tr>
+        <tr><td><code>!</code></td><td>感叹号字符</td></tr>
+        <tr><td><code>"</code></td><td><strong>双引号</strong>：告诉 Python "字符串到此结束"</td></tr>
+        <tr><td><code>)</code></td><td><strong>右括号</strong>：告诉 Python "参数结束"</td></tr>
+        </tbody>
+    </table>
+    <p><strong>Python 读这行代码时的思考过程</strong>：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+                <pre><code>看到 print → 这是函数名
+看到 ( → 开始收集参数
+看到 " → 开始读取字符串
+看到 H, e, l, l, o, ,,  , W, o, r, l, d, ! → 这是字符串的内容
+看到 " → 字符串结束，得到一个字符串 "Hello, World!"
+看到 ) → 参数收集完毕，参数是 "Hello, World!"
+开始调用 print 函数，把 "Hello, World!" 传给它
+print 函数把内容输出到屏幕</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 1.7 运行程序的三种方式 -->
+<div class="section-container" id="class-1-1.7">
+    <h2>1.7 运行程序的三种方式</h2>
+    <p><strong>方式一：命令行运行</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>python hello.py</code></pre>
+        </div>
+    </div>
+    <p><strong>逐步骤解释</strong>：</p>
+    <ol>
+        <li><code>python</code> → 操作系统在 PATH 中找到 <code>python.exe</code></li>
+        <li><code>hello.py</code> → 告诉 Python 解释器要执行这个文件</li>
+        <li>Python 解释器打开 <code>hello.py</code>，读取全部内容</li>
+        <li>逐行执行代码</li>
+        <li>执行完毕，Python 解释器退出</li>
+    </ol>
+    <p><strong>方式二：交互式模式（REPL）</strong></p>
+    <p>在命令行直接输入 <code>python</code>（不带文件名），会进入交互模式：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+                <pre><code>>>> print("Hello")
+Hello
+>>> 1 + 1
+2
+>>> exit()</code></pre>
+        </div>
+    </div>
+    <ul>
+        <li><code>>>></code> 是提示符，表示 Python 在等你输入</li>
+        <li>你输入一行代码，回车，Python 立即执行并显示结果</li>
+        <li>适合快速测试小段代码</li>
+        <li>输入 <code>exit()</code> 或按 <code>Ctrl+Z</code>（Windows）退出</li>
+    </ul>
+    <p><strong>方式三：在 VS Code 等编辑器里运行</strong></p>
+    <p>VS Code 装上 Python 插件后，右上角有一个运行按钮（▶），点一下就运行。</p>
+    <p>本质上，VS Code 也是帮你执行了 <code>python 你的文件名.py</code> 这个命令，只是把过程图形化了。</p>
+</div>
+
+<!-- 1.8 如果出错了怎么办——你的第一个 bug -->
+<div class="section-container" id="class-1-1.8">
+    <h2>1.8 如果出错了怎么办——你的第一个 bug</h2>
+    <p>假设你不小心写成了：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>print("Hello)</code></pre>
+        </div>
+    </div>
+    <p>运行会报错：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+                <pre><code>  File "hello.py", line 1
+    print("Hello)
+          ^
+SyntaxError: unterminated string literal (detected at line 1)</code></pre>
+        </div>
+    </div>
+    <p><strong>逐词翻译这个错误信息</strong>：</p>
+    <table>
+        <thead>
+        <tr>
+            <th>英文</th>
+            <th>中文</th>
+            <th>含义</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr><td><code>File "hello.py"</code></td><td>文件 "hello.py"</td><td>错误发生在哪个文件</td></tr>
+        <tr><td><code>line 1</code></td><td>第1行</td><td>错误发生在第几行</td></tr>
+        <tr><td><code>print("Hello)</code></td><td></td><td>出错的代码</td></tr>
+        <tr><td><code>^</code></td><td></td><td>小箭头指向出错的大概位置</td></tr>
+        <tr><td><code>SyntaxError</code></td><td>语法错误</td><td>错误类型：代码不符合 Python 语法</td></tr>
+        <tr><td><code>unterminated string literal</code></td><td>未结束的字符串字面量</td><td>具体原因：字符串没有用引号正确关闭</td></tr>
+        </tbody>
+    </table>
+    <p>这个错误信息已经告诉你了：</p>
+    <ul>
+        <li>在哪里出错了（第1行）</li>
+        <li>是什么错误（语法错误）</li>
+        <li>具体原因（字符串没关引号）</li>
+    </ul>
+    <p><strong>学习看错误信息是编程最重要的技能之一。</strong> 每次报错，先不要慌，仔细读错误信息的最后一行，它通常会告诉你问题出在哪。</p>
+</div>
+
+<!-- 1.9 本章总结 -->
+<div class="section-container" id="class-1-1.9">
+    <h2>1.9 本章总结</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>知识点</th>
+            <th>一句话总结</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr><td>Python 是什么</td><td>一种高级解释型编程语言，强调代码可读性</td></tr>
+        <tr><td>解释型 vs 编译型</td><td>Python 边读边执行，C 先编译再执行</td></tr>
+        <tr><td>Python 解释器</td><td>读取 .py 文件并执行的程序</td></tr>
+        <tr><td>PATH</td><td>操作系统找命令的路径列表，不配置就找不到 python</td></tr>
+        <tr><td><code>print()</code></td><td>把内容显示到屏幕的函数</td></tr>
+        <tr><td>字符串</td><td>用引号包裹的文本</td></tr>
+        <tr><td>语法错误</td><td>代码不符合 Python 规则时产生的错误</td></tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    document.querySelectorAll('.section-container').forEach(section => {
+        section.addEventListener('mouseenter', () => {
+            section.style.transform = 'scale(1.03)';
+            section.style.backdropFilter = 'none'
+            section.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)'
+        })
+
+        section.addEventListener('mouseleave', () => {
+            section.style.transform = 'scale(1)';
+            section.style.backdropFilter = 'blur(10px)'
+            section.style.boxShadow = 'none'
+        })
+    })
+</script>
+</body>
+</html>

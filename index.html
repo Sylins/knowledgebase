@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name = "viewport" content = "width = device-width,initial-scale = 1.0">
+    <title>Sylinx's 笔记</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="Main-title-background">
+    <h1 class="Main-title"><b>笔记</b></h1>
+</div>
+<div class="Body-Part">
+    <div class="coding" style="position: relative;transform: scale(0.95);border-radius: 10px;transition: all 0.8s ease">
+        <video class="coding-video" autoplay muted loop playsinline style="
+                    position: absolute;
+                    pointer-events: none;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: 0;
+                    border-radius: 10px;
+                    filter: blur(10px);
+                    transition: all 0.8s ease;
+                ">
+            <source src="Main_background_video.mp4" type="video/mp4">
+        </video>
+        <details class="coding-list">
+            <summary style="font-size: xx-large;z-index: 2;position: relative">编程</summary>
+            <div>
+                <ul style="position: relative;z-index: 1">
+                    <li><h2 style="text-align: left"><a href="编程/HTML/html.html" style="color: inherit;text-decoration: none;background: none">HTML</a></h2></li>
+                </ul>
+                <ul style="position: relative;z-index: 1">
+                    <li><h2 style="text-align: left"><a href="编程/Python/python.html" style="color: inherit;text-decoration: none;background: none">Python</a></h2></li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</div>
+
+<script>
+    const coding = document.querySelector('.coding');
+    const coding_video = document.querySelector('.coding-video');
+    coding.addEventListener('mouseenter', () => {
+        coding_video.style.filter = 'blur(0px)'
+        coding.style.transform = 'scale(1)'
+        coding.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)'
+    })
+
+    coding.addEventListener('mouseleave', () => {
+        coding_video.style.filter = 'blur(10px)'
+        coding.style.transform = 'scale(0.95)'
+        coding.style.boxShadow = 'none'
+    })
+
+    document.querySelectorAll('details').forEach(detail => {
+        const summary = detail.querySelector('summary');
+        const content = summary.nextElementSibling;
+
+        // 内容包裹层
+        const wrapper = document.createElement('div');
+        wrapper.style.overflow = 'hidden';
+        while (content.firstChild) wrapper.appendChild(content.firstChild);
+        content.appendChild(wrapper);
+
+        content.style.overflow = 'hidden';
+        content.style.display = 'grid';
+        content.style.gridTemplateRows = '0fr';
+
+        let animationId = null;
+        let currentHeight = 0;
+
+        function animateTo(targetHeight) {
+            if (animationId) cancelAnimationFrame(animationId);
+
+            const startHeight = currentHeight;
+            const startTime = performance.now();
+            const duration = 500;
+
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                currentHeight = startHeight + (targetHeight - startHeight) * progress;
+                content.style.gridTemplateRows = currentHeight + 'px';
+
+                if (progress < 1) {
+                    animationId = requestAnimationFrame(step);
+                } else {
+                    animationId = null;
+                    if (targetHeight === 0) {
+                        detail.open = false;
+                        content.style.gridTemplateRows = '0fr';
+                    } else {
+                        content.style.gridTemplateRows = '1fr';
+                    }
+                    currentHeight = targetHeight;
+                }
+            }
+
+            animationId = requestAnimationFrame(step);
+        }
+
+        summary.addEventListener('click', (e) => {
+            if (detail.open) if (e.target.closest('a')) return;
+            e.preventDefault();
+
+            if (detail.open) {
+                const real = wrapper.scrollHeight;
+                currentHeight = real;
+                content.style.gridTemplateRows = real + 'px';
+                animateTo(0);
+            } else {
+                detail.open = true;
+                content.style.gridTemplateRows = '0fr';
+                requestAnimationFrame(() => {
+                    const real = wrapper.scrollHeight;
+                    currentHeight = 0;
+                    content.style.gridTemplateRows = '0px';
+                    animateTo(real);
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

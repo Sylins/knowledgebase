@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PyTorch</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<style>
+  body {
+    user-select: none;
+  }
+</style>
+<body>
+<h1 style="text-align: center">Python原生</h1>
+<video autoplay muted loop playsinline style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: -1;
+                    border-radius: 10px;
+                ">
+  <source src="../../../Main_background_video.mp4" type="video/mp4">
+</video>
+
+<details class="chapter" style="position: relative;z-index: 1;backdrop-filter: blur(10px);;border-radius: 10px;transform: scale(0.95);transition: all 0.8s ease">
+  <summary style="position: relative;"><h2 style="width: fit-content;user-select: none"><a href="class%201.html" style="color: inherit;text-decoration: none;background: none">第1课：张量的创建与基本属性</a></h2></summary>
+  <div>
+    <ul>
+      <li><h3><a href="class%201.html#class-1-1.1" style="user-select: none;color: inherit;text-decoration: none;background: none">1.1 张量是什么</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.2" style="user-select: none;color: inherit;text-decoration: none;background: none">1.2 从 Python 列表或 NumPy 数组创建张量</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.3" style="user-select: none;color: inherit;text-decoration: none;background: none">1.3 使用内置函数创建特殊张量</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.4" style="user-select: none;color: inherit;text-decoration: none;background: none">1.4 创建等差数列或等间隔序列</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.5" style="user-select: none;color: inherit;text-decoration: none;background: none">1.5 创建与已有张量相同形状的张量</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.6" style="user-select: none;color: inherit;text-decoration: none;background: none">1.6 张量的关键属性</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.7" style="user-select: none;color: inherit;text-decoration: none;background: none">1.7 数据类型（dtype）详解</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.8" style="user-select: none;color: inherit;text-decoration: none;background: none">1.8 设备（device）管理</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.9" style="user-select: none;color: inherit;text-decoration: none;background: none">1.9 练习</a></h3></li>
+      <li><h3><a href="class%201.html#class-1-1.10" style="user-select: none;color: inherit;text-decoration: none;background: none">1.10 总结</a></h3></li>
+    </ul>
+  </div>
+</details>
+<script>
+  document.querySelectorAll('.chapter').forEach(chapter => {
+    chapter.addEventListener('mouseenter', () => {
+      if (chapter.classList.contains('inside-chapter') === false) {
+        chapter.style.backdropFilter = 'none'
+      }
+      chapter.style.transform = 'scale(1)';
+      chapter.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)';
+    })
+
+    chapter.addEventListener('mouseleave', () => {
+      if (chapter.classList.contains('inside-chapter') === false) {
+        chapter.style.backdropFilter = 'blur(10px)'
+      }
+      chapter.style.transform = 'scale(0.95)';
+      chapter.style.boxShadow = 'none';
+    })
+  })
+
+  document.querySelectorAll('details').forEach(detail => {
+    const summary = detail.querySelector('summary');
+    const content = summary.nextElementSibling;
+
+    const wrapper = document.createElement('div');
+    wrapper.style.overflow = 'hidden';
+    while (content.firstChild) wrapper.appendChild(content.firstChild);
+    content.appendChild(wrapper);
+
+    content.style.overflow = 'hidden';
+    content.style.display = 'grid';
+    content.style.gridTemplateRows = '0fr';
+
+    let animationId = null;
+    let currentHeight = 0;
+    let animating = null;
+    let isClosing = null;
+
+    function animateTo(targetHeight) {
+      isClosing = (targetHeight === 0);
+      if (animationId) cancelAnimationFrame(animationId);
+
+      const startHeight = currentHeight;
+      const startTime = performance.now();
+      const duration = 500;
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        currentHeight = startHeight + (targetHeight - startHeight) * progress;
+        content.style.gridTemplateRows = currentHeight + 'px';
+
+        if (progress < 1) {
+          animationId = requestAnimationFrame(step);
+        } else {
+          animationId = null;
+          if (targetHeight === 0) {
+            detail.open = false;
+            content.style.gridTemplateRows = '0fr';
+          } else {
+            content.style.gridTemplateRows = '1fr';
+          }
+          currentHeight = targetHeight;
+          animating = null;
+          isClosing = null;
+        }
+      }
+
+      animationId = requestAnimationFrame(step);
+    }
+
+    summary.addEventListener('click', (e) => {
+      if (detail.open) if (e.target.closest('a')) return;
+      e.preventDefault();
+
+      // 点击正在动画的 detail → 反转方向
+      if (animating === detail) {
+        cancelAnimationFrame(animationId);
+        const targetHeight = isClosing ? wrapper.scrollHeight : 0;
+        content.style.gridTemplateRows = currentHeight + 'px';
+        animateTo(targetHeight);
+        return;
+      }
+
+      // 有其他 detail 在动画 → 忽略
+      if (animating) return;
+
+      animating = detail;
+
+      if (detail.open) {
+        const real = wrapper.scrollHeight;
+        currentHeight = real;
+        content.style.gridTemplateRows = real + 'px';
+        isClosing = true;
+        animateTo(0);
+      } else {
+        detail.open = true;
+        content.style.gridTemplateRows = '0fr';
+        requestAnimationFrame(() => {
+          const real = wrapper.scrollHeight;
+          currentHeight = 0;
+          content.style.gridTemplateRows = '0px';
+          isClosing = false;
+          animateTo(real);
+        });
+      }
+    });
+  });
+
+</script>
+
+</body>
+</html>
