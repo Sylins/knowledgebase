@@ -124,6 +124,18 @@
             }
         });
     });
+
+    fetch('https://raw.githubusercontent.com/Sylins/knowledgebase/main/version.txt')
+        .then(r => r.text())
+        .then(remoteVer => {
+            const localVer = '1.0.0';   // 每次推送前手动改
+            if (remoteVer.trim() !== localVer.trim()) {
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:#238636;color:#fff;text-align:center;padding:12px;z-index:9999;';
+                banner.innerHTML = '📦 有新版本可用！<a href="https://ethereis.com" style="color:#fff;font-weight:bold;">点击下载最新版</a>';
+                document.body.prepend(banner);
+            }
+        });
 </script>
 </body>
 </html>
