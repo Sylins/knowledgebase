@@ -4,7 +4,8 @@ body {
     line-height: 1.8;
     color: black;
     background-color: white;
-    width: 900px;
+    width: 1240px;
+    margin: auto;
 }
 
 .Main-title {
