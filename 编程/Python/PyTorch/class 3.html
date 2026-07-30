@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第3课：张量的数学运算与广播机制</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../../../preview.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #1e293b;
+        }
+        h1 {
+            text-align: center;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        h3 {
+            color: #334155;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        pre {
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 1px;
+            border-radius: 5px;
+            font-size: inherit;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgb(255 255 255 / 0.5);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: rgb(248 250 252 / 0.5);
+            color: #0f172a;
+            font-weight: 600;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: rgb(248 250 252 / 0.5);
+        }
+        .section-container {
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            transition: all 0.8s ease;
+        }
+        .code-inline {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        strong {
+            color: #0f172a;
+        }
+        .emphasis-note {
+            background-color: #fef9c3;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .code-output-row {
+            align-items: stretch;
+            display: flex;
+            gap: 20px;
+        }
+        .code-output-row .code-col,
+        .code-output-row .output-col {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+        }
+        .output-col pre {
+            flex: 1;
+            background-color: rgb(248 250 252 / 0.5);
+            border: 2px dashed #cbd5e1;
+        }
+        .code-col pre {
+            flex: 1;
+        }
+
+        .code-col pre::-webkit-scrollbar,
+        .output-col pre::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-col pre::-webkit-scrollbar-track,
+        .output-col pre::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb,
+        .output-col pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb:hover,
+        .output-col pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body>
+<video autoplay muted loop playsinline style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: -1;
+                    border-radius: 10px;
+                ">
+    <source src="../../../PyTorch_background_video.mp4" type="video/mp4">
+</video>
+
+<h1>第3课：张量的数学运算与广播机制</h1>
+
+<hr>
+
+<!-- 3.1 逐元素运算 -->
+<div class="section-container" id="class-3-3.1">
+    <h2>3.1 逐元素运算（Element-wise Operations）</h2>
+    <p>逐元素运算是指对两个张量中<strong>对应位置</strong>的元素分别进行计算，得到一个新的张量。这是深度学习中最基础、最频繁的操作。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>import torch
+
+a = torch.tensor([1.0, 2.0, 3.0])
+b = torch.tensor([4.0, 5.0, 6.0])
+
+# 加法
+add_result = a + b
+print("加法结果:", add_result)
+
+add_result2 = torch.add(a, b)
+print("torch.add 结果:", add_result2)
+
+# 减法
+sub_result = a - b
+print("减法结果:", sub_result)
+
+# 乘法（逐元素相乘，注意这不是矩阵乘法）
+mul_result = a * b
+print("逐元素乘法结果:", mul_result)
+
+# 除法
+div_result = a / b
+print("除法结果:", div_result)
+
+# 幂运算
+pow_result = a ** 2
+print("平方结果:", pow_result)
+
+pow_result2 = torch.pow(a, 2)
+print("torch.pow 结果:", pow_result2)
+
+# 平方根
+sqrt_result = torch.sqrt(a)
+print("平方根结果:", sqrt_result)
+
+# 指数运算（e 的 x 次方）
+exp_result = torch.exp(a)
+print("e 的 x 次方结果:", exp_result)
+
+# 对数运算（自然对数，以 e 为底）
+log_result = torch.log(a)
+print("自然对数结果:", log_result)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>加法结果: tensor([5., 7., 9.])
+torch.add 结果: tensor([5., 7., 9.])
+减法结果: tensor([-3., -3., -3.])
+逐元素乘法结果: tensor([ 4., 10., 18.])
+除法结果: tensor([0.2500, 0.4000, 0.5000])
+平方结果: tensor([1., 4., 9.])
+torch.pow 结果: tensor([1., 4., 9.])
+平方根结果: tensor([1.0000, 1.4142, 1.7321])
+e 的 x 次方结果: tensor([ 2.7183,  7.3891, 20.0855])
+自然对数结果: tensor([0.0000, 0.6931, 1.0986])</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】逐元素运算（Element-wise Operation）</strong>：指两个张量对应位置的数据独立进行数学运算。例如张量 A = [1, 2, 3]，张量 B = [4, 5, 6]，逐元素相加就是 [1+4, 2+5, 3+6] = [5, 7, 9]。这种运算的前提是两个张量的<strong>形状必须相同</strong>（或者满足广播条件，见3.4节），运算结果形状与输入形状一致。</p>
+    <p><strong>【名词解释】张量与张量运算的维度一致性</strong>：当两个张量形状完全相同时，逐元素运算就是在每个对应位置上独立计算。PyTorch 会逐位遍历所有元素，不会出现维度错位的问题。这是最基础也是最安全的运算场景。</p>
+</div>
+
+<!-- 3.2 标量与张量的运算 -->
+<div class="section-container" id="class-3-3.2">
+    <h2>3.2 标量与张量的运算</h2>
+    <p>标量（一个单独的数字）与张量进行运算时，标量会自动扩展到张量的每一个元素位置，这个过程是广播机制的最简形式。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([1.0, 2.0, 3.0, 4.0])
+
+# 标量加法：每个元素都加 10
+result_add = x + 10
+print("每个元素加10:", result_add)
+
+# 标量减法：每个元素都减 1
+result_sub = x - 1
+print("每个元素减1:", result_sub)
+
+# 标量乘法：每个元素都乘以 2
+result_mul = x * 2
+print("每个元素乘以2:", result_mul)
+
+# 标量除法：每个元素都除以 2
+result_div = x / 2
+print("每个元素除以2:", result_div)
+
+# 标量幂运算：每个元素都取平方
+result_pow = x ** 2
+print("每个元素取平方:", result_pow)
+
+# 标量幂运算：2 的 x 次方（每个元素作为指数）
+result_pow2 = 2 ** x
+print("2 的每个元素次方:", result_pow2)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>每个元素加10: tensor([11., 12., 13., 14.])
+每个元素减1: tensor([0., 1., 2., 3.])
+每个元素乘以2: tensor([2., 4., 6., 8.])
+每个元素除以2: tensor([0.5000, 1.0000, 1.5000, 2.0000])
+每个元素取平方: tensor([ 1.,  4.,  9., 16.])
+2 的每个元素次方: tensor([ 2.,  4.,  8., 16.])</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】标量（Scalar）</strong>：在数学中，标量是一个单独的数，没有方向属性。在 PyTorch 中，标量是指<strong>0维张量</strong>，即只包含一个元素的张量，例如 <code>torch.tensor(3.14)</code> 或 <code>torch.tensor(5)</code>。标量可以看作是张量的一个特例，在与高维张量运算时，标量会自动"扩展"到与高维张量相同的形状，这种扩展是广播机制的基础应用。</p>
+    <p><strong>【名词解释】广播机制的最简形式</strong>：当标量与张量运算时，标量被视为形状为 [1] 的张量，然后按照广播规则扩展到目标张量的形状。例如形状 [4] 的张量与标量运算，标量相当于被复制了4份，变成一个长度为4的一维张量，再与原始张量逐元素运算。这种复制是逻辑上的，PyTorch 并不会真的在内存中复制数据，而是通过步长（stride）为0的方式实现"虚拟扩展"，因此非常高效。</p>
+</div>
+
+<!-- 3.3 矩阵运算 -->
+<div class="section-container" id="class-3-3.3">
+    <h2>3.3 矩阵运算（线性代数运算）</h2>
+    <p>逐元素乘法与矩阵乘法是完全不同的两种运算，在深度学习中必须严格区分使用场景。</p>
+
+    <h3 id="class-3-3.3.1">3.3.1 二维矩阵乘法：torch.mm</h3>
+    <p><code>torch.mm</code> 用于两个二维矩阵的乘法，遵循线性代数中的矩阵乘法定义。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>mat1 = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+mat2 = torch.tensor([[5.0, 6.0], [7.0, 8.0]])
+
+result_mm = torch.mm(mat1, mat2)
+print("矩阵乘法结果 (mm):")
+print(result_mm)
+print("结果形状:", result_mm.shape)
+
+# 矩阵乘法的核心条件：第一个矩阵的列数必须等于第二个矩阵的行数
+mat3 = torch.randn(2, 3)
+mat4 = torch.randn(3, 4)
+result_ok = torch.mm(mat3, mat4)
+print("形状 [2,3] x [3,4] 结果形状:", result_ok.shape)
+
+# 以下代码会报错，因为 3 != 2
+# mat5 = torch.randn(2, 3)
+# mat6 = torch.randn(2, 4)
+# result_error = torch.mm(mat5, mat6)  # 取消注释会报错</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>矩阵乘法结果 (mm):
+tensor([[19., 22.],
+        [43., 50.]])
+结果形状: torch.Size([2, 2])
+形状 [2,3] x [3,4] 结果形状: torch.Size([2, 4])
+  File "wrong_shape.py", line 20, in &lt;module&gt;
+    result_error = torch.mm(mat5, mat6)  # 取消注释会报错
+RuntimeError: mat1 and mat2 shapes cannot be multiplied (2x3 and 2x4)</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】矩阵乘法（Matrix Multiplication）</strong>：线性代数中的核心运算。对于矩阵 A（形状为 m×n）和矩阵 B（形状为 n×p），它们的乘积 C = A × B 的形状为 m×p。C 中第 i 行第 j 列的元素计算公式为：\(C[i][j] = \sum_{k=1}^{n} A[i][k] \times B[k][j]\)。<strong>核心条件是</strong> A 的列数必须等于 B 的行数（即 n = n）。矩阵乘法与逐元素乘法的根本区别在于：矩阵乘法是"行与列的对应相乘再求和"，而逐元素乘法是"相同位置的数直接相乘"。</p>
+
+    <h3 id="class-3-3.3.2">3.3.2 批量矩阵乘法：torch.bmm</h3>
+    <p>当需要同时处理多组矩阵的乘法时，使用批量矩阵乘法。这在处理批次数据（batch）时非常常见。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># 创建两组矩阵：batch1 包含 10 个形状为 [2, 3] 的矩阵
+# batch2 包含 10 个形状为 [3, 4] 的矩阵
+batch1 = torch.randn(10, 2, 3)
+batch2 = torch.randn(10, 3, 4)
+
+result_bmm = torch.bmm(batch1, batch2)
+print("批量矩阵乘法结果形状:", result_bmm.shape)
+
+# bmm 要求 batch 数量必须相同
+batch3 = torch.randn(5, 2, 3)
+batch4 = torch.randn(5, 3, 4)
+result_bmm2 = torch.bmm(batch3, batch4)
+print("batch_size=5 的结果形状:", result_bmm2.shape)
+
+# 以下代码会报错，因为 batch 数量不匹配
+# batch5 = torch.randn(10, 2, 3)
+# batch6 = torch.randn(5, 3, 4)
+# result_error = torch.bmm(batch5, batch6)  # 取消注释会报错</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>批量矩阵乘法结果形状: torch.Size([10, 2, 4])
+batch_size=5 的结果形状: torch.Size([5, 2, 4])<br>  File "wrong_shape.py", line 20, in &lt;module&gt;
+    result_error = torch.bmm(batch5, batch6)  # 取消注释会报错
+RuntimeError: Expected size for first two dimensions of batch2 tensor to be: [10, 3] but got: [5, 3].</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】批量矩阵乘法（Batch Matrix Multiplication）</strong>：当有多个矩阵对需要同时相乘时，可以将这些矩阵组织成"批次"维度。<code>torch.bmm</code> 会在批次维度上独立处理每一对矩阵，互不干扰。例如形状 [10, 2, 3] 表示有10个独立的 [2, 3] 矩阵，形状 [10, 3, 4] 表示有10个独立的 [3, 4] 矩阵，<code>bmm</code> 会将第0组 [2,3] 与第0组 [3,4] 相乘，第1组与第1组相乘，依此类推，最终输出形状为 [10, 2, 4]。这种设计充分利用了并行计算能力，比用循环逐个相乘要快得多。</p>
+
+    <h3 id="class-3-3.3.3">3.3.3 通用矩阵乘法：torch.matmul（最推荐）</h3>
+    <p><code>torch.matmul</code> 是最灵活的矩阵乘法函数，能够根据输入张量的维度自动选择合适的运算方式。建议在大多数场景下优先使用 <code>matmul</code>。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># 场景1：两个二维张量 → 等同于 torch.mm
+mat1 = torch.randn(2, 3)
+mat2 = torch.randn(3, 4)
+result1 = torch.matmul(mat1, mat2)
+print("二维 x 二维 结果形状:", result1.shape)
+
+# 场景2：二维张量 × 一维张量 → 矩阵乘向量
+mat = torch.randn(2, 3)
+vec = torch.randn(3)
+result2 = torch.matmul(mat, vec)
+print("二维 x 一维 结果形状:", result2.shape)
+
+# 场景3：一维张量 × 二维张量 → 向量乘矩阵
+vec2 = torch.randn(3)
+mat3 = torch.randn(3, 4)
+result3 = torch.matmul(vec2, mat3)
+print("一维 x 二维 结果形状:", result3.shape)
+
+# 场景4：高维张量 → 自动执行批量矩阵乘法
+high1 = torch.randn(5, 2, 3)
+high2 = torch.randn(5, 3, 4)
+result4 = torch.matmul(high1, high2)
+print("批量高维结果形状:", result4.shape)
+
+# 场景5：一维与一维 → 向量点积（内积）
+vec_a = torch.tensor([1.0, 2.0, 3.0])
+vec_b = torch.tensor([4.0, 5.0, 6.0])
+dot_product = torch.matmul(vec_a, vec_b)
+print("向量点积结果:", dot_product)
+print("点积结果类型:", type(dot_product))  # 注意这里返回的是标量张量还是0维张量</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>二维 x 二维 结果形状: torch.Size([2, 4])
+二维 x 一维 结果形状: torch.Size([2])
+一维 x 二维 结果形状: torch.Size([4])
+批量高维结果形状: torch.Size([5, 2, 4])
+向量点积结果: tensor(32.)
+点积结果类型: &lt;class 'torch.Tensor'&gt;</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】matmul 的自动维度适配</strong>：<code>torch.matmul</code> 的灵活性体现在它能根据输入张量的维度自动选择运算方式：</p>
+    <ul>
+        <li>两个都是二维 → 标准矩阵乘法</li>
+        <li>一个是二维，一个是一维 → 矩阵乘向量或向量乘矩阵（结果为一维）</li>
+        <li>两个都是一维 → 向量点积（结果为标量）</li>
+        <li>至少一个维度大于等于3 → 视为批量矩阵乘法，最后两维作为矩阵的行和列，前面的维度作为批次维度</li>
+    </ul>
+    <p>这种自动适配大大简化了代码，不必手动判断使用 <code>mm</code>、<code>bmm</code> 还是点积。</p>
+    <p><strong>【名词解释】向量点积（Dot Product）</strong>：两个长度相同的向量对应元素相乘后再求和。例如 [1,2,3] 和 [4,5,6] 的点积 = 1×4 + 2×5 + 3×6 = 4 + 10 + 18 = 32。点积在深度学习中广泛应用于相似度计算、注意力机制中的打分等场景。</p>
+</div>
+
+<!-- 3.4 规约运算 -->
+<div class="section-container" id="class-3-3.4">
+    <h2>3.4 规约运算（Reduction Operations）</h2>
+    <p>规约运算是将张量中的多个元素通过某种方式"压缩"成一个或少量数值的运算，常用于计算损失、统计信息等。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([[1.0, 2.0, 3.0],
+                  [4.0, 5.0, 6.0]])
+
+print("原始张量 x:")
+print(x)
+print("形状:", x.shape)
+
+# ---------- 求和 ----------
+sum_all = torch.sum(x)
+print("所有元素求和:", sum_all)
+
+sum_dim0 = torch.sum(x, dim=0)
+print("沿第0维求和（按列）:", sum_dim0)
+print("形状:", sum_dim0.shape)
+
+sum_dim1 = torch.sum(x, dim=1)
+print("沿第1维求和（按行）:", sum_dim1)
+print("形状:", sum_dim1.shape)
+
+# ---------- 平均值 ----------
+mean_all = torch.mean(x)
+print("所有元素平均值:", mean_all)
+
+mean_dim0 = torch.mean(x, dim=0)
+print("沿第0维求平均（每列平均）:", mean_dim0)
+
+mean_dim1 = torch.mean(x, dim=1)
+print("沿第1维求平均（每行平均）:", mean_dim1)
+
+# ---------- 最大值与最小值 ----------
+max_all = torch.max(x)
+print("全局最大值:", max_all)
+
+min_all = torch.min(x)
+print("全局最小值:", min_all)
+
+# 沿第0维取最大值，同时返回最大值本身和对应的索引
+max_dim0, max_idx = torch.max(x, dim=0)
+print("沿第0维最大值:", max_dim0)
+print("最大值索引:", max_idx)
+
+min_dim1, min_idx = torch.min(x, dim=1)
+print("沿第1维最小值:", min_dim1)
+print("最小值索引:", min_idx)
+
+# -------- 取最大值索引（分类任务中常用） --------
+# argmax 只返回最大值的索引位置，不返回值
+argmax_all = torch.argmax(x)
+print("全局展平后最大值的索引:", argmax_all)
+
+argmax_dim1 = torch.argmax(x, dim=1)
+print("每行最大值所在的列索引:", argmax_dim1)
+
+argmin_dim0 = torch.argmin(x, dim=0)
+print("每列最小值所在的行索引:", argmin_dim0)
+
+# ------- 保持维度的规约（keepdim=True） -------
+sum_keep = torch.sum(x, dim=1, keepdim=True)
+print("每行求和（保持维度）:")
+print(sum_keep)
+print("形状:", sum_keep.shape)
+
+mean_keep = torch.mean(x, dim=0, keepdim=True)
+print("每列求平均（保持维度）:")
+print(mean_keep)
+print("形状:", mean_keep.shape)
+
+# 比较 keepdim=False（默认）和 keepdim=True 的区别
+sum_no_keep = torch.sum(x, dim=1)
+print("不保持维度形状:", sum_no_keep.shape)
+print("保持维度形状:", sum_keep.shape)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br>原始张量 x:
+tensor([[1., 2., 3.],
+        [4., 5., 6.]])
+形状: torch.Size([2, 3])
+<br><br><br>所有元素求和: tensor(21.)
+<br><br>沿第0维求和（按列）: tensor([5., 7., 9.])
+形状: torch.Size([3])
+<br><br>沿第1维求和（按行）: tensor([ 6., 15.])
+形状: torch.Size([2])
+<br><br><br>所有元素平均值: tensor(3.5000)
+<br><br>沿第0维求平均（每列平均）: tensor([2.5000, 3.5000, 4.5000])
+<br><br>沿第1维求平均（每行平均）: tensor([2., 5.])
+<br><br><br>全局最大值: tensor(6.)
+<br><br>全局最小值: tensor(1.)
+<br><br><br>沿第0维最大值: tensor([4., 5., 6.])
+最大值索引: tensor([1, 1, 1])
+<br><br>沿第1维最小值: tensor([1., 4.])
+最小值索引: tensor([0, 0])
+<br><br><br><br>全局展平后最大值的索引: tensor(5)
+<br><br>每行最大值所在的列索引: tensor([2, 2])
+<br><br>每列最小值所在的行索引: tensor([0, 0, 0])
+<br><br>每行求和（保持维度）:
+tensor([[ 6.],
+        [15.]])
+形状: torch.Size([2, 1])
+<br><br>每列求平均（保持维度）:
+tensor([[2.5000, 3.5000, 4.5000]])
+形状: torch.Size([1, 3])
+<br><br><br>不保持维度形状: torch.Size([2])
+保持维度形状: torch.Size([2, 1])</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】规约运算（Reduction Operation）</strong>：将张量沿某个维度进行压缩的运算。被压缩的维度会消失（或变成大小为1）。理解规约的关键在于理解 <code>dim</code> 参数的含义：指定 <code>dim=k</code> 表示"消除第 k 维"，该维度上的所有元素通过某种运算（求和、求平均、取最大值等）合并成一个值。例如形状 [2, 3] 的张量沿第0维求和，第0维（大小为2）被消除，结果形状变为 [3]。这个过程可以理解为"把行压缩掉了，只剩下列"。</p>
+    <p><strong>【名词解释】dim 参数的方向理解</strong>：<code>dim</code> 指定的是"沿着哪个方向"进行规约。对于形状 [2, 3] 的二维张量：</p>
+    <ul>
+        <li><code>dim=0</code>：沿着行方向（垂直方向）压缩，即把每一列的所有行合并，结果保留了列数（3列），行数消失</li>
+        <li><code>dim=1</code>：沿着列方向（水平方向）压缩，即把每一行的所有列合并，结果保留了行数（2行），列数消失</li>
+    </ul>
+    <p>可以这样记忆：<code>dim=k</code> 表示第 k 个轴上的所有元素会被"折叠"成一个值，该轴从张量中消失。</p>
+    <p><strong>【名词解释】keepdim 参数</strong>：规约运算默认会删除被规约的维度（即该维度消失）。设置 <code>keepdim=True</code> 后，被规约的维度会保留，但大小变为1。例如形状 [2, 3] 沿第1维求和，默认结果是形状 [2]（一维）；保持维度后结果是形状 [2, 1]（二维）。保留维度在后续进行广播运算时非常有用，因为维度数量不变，形状匹配更容易。</p>
+    <p><strong>【名词解释】argmax 与 max 的区别</strong>：<code>max</code> 返回的是最大值本身（数值），<code>argmax</code> 返回的是最大值所在的位置（索引）。在分类任务中，神经网络输出的是每个类别的分数（例如10个类别的得分），为了得到预测类别，需要用 <code>argmax</code> 找出分数最高的那个类别编号。<code>argmax</code> 返回的是一个整数索引，代表模型认为最可能的类别。</p>
+</div>
+
+<!-- 3.5 广播机制 -->
+<div class="section-container" id="class-3-3.5">
+    <h2>3.5 广播机制（Broadcasting）</h2>
+    <p>当两个张量的形状不完全相同时，PyTorch 会自动尝试使用广播机制将它们扩展到相同形状再进行运算。这是 PyTorch 中非常重要的特性，理解它对于避免维度错误至关重要。</p>
+
+    <h3>3.5.1 广播的触发条件</h3>
+    <p>从两个张量的<strong>最右边维度</strong>开始（即从最后一个维度开始），逐个向左比较。满足以下任一条件即可广播：</p>
+    <ul>
+        <li>两个维度大小相等</li>
+        <li>其中一个维度大小为 1</li>
+        <li>其中一个维度不存在（在比较时，缺失的维度视为 1）</li>
+    </ul>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># ---------- 示例1：标量广播 ----------
+a = torch.tensor([1.0, 2.0, 3.0])
+b = 2.0
+
+result = a + b
+print("标量广播结果:", result)
+
+# b 被视为形状 [1]，然后广播到 [3]
+# 逻辑上：b 变成了 [2.0, 2.0, 2.0]
+# 实际上：PyTorch 通过 stride=0 实现，不复制内存
+
+# ---------- 示例2：行向量与矩阵的广播 ----------
+mat = torch.tensor([[1.0, 2.0, 3.0],
+                    [4.0, 5.0, 6.0]])
+vec = torch.tensor([10.0, 20.0, 30.0])
+
+result = mat + vec
+print("矩阵 + 行向量:")
+print(result)
+print("结果形状:", result.shape)
+
+# 比较维度：mat 形状 [2, 3]，vec 形状 [3]
+# 从右向左：第0维（最右）3 == 3，匹配
+# 第1维：mat 有 2，vec 缺失（视为1），vec 被广播为 [1, 3]，再扩展到 [2, 3]
+
+# ---------- 示例3：列向量与矩阵的广播 ----------
+col_vec = torch.tensor([[10.0],
+                        [20.0]])
+
+result = mat + col_vec
+print("矩阵 + 列向量:")
+print(result)
+print("结果形状:", result.shape)
+
+# 比较维度：mat 形状 [2, 3]，col_vec 形状 [2, 1]
+# 从右向左：第0维（最右）3 vs 1 → 1可以广播为3
+# 第1维：2 vs 2 → 相等，匹配
+# col_vec 被广播为 [2, 3]
+
+# ---------- 示例4：三维与二维的广播 ----------
+a3d = torch.randn(5, 1, 4)
+b2d = torch.randn(3, 1)
+
+result = a3d + b2d
+print("三维 + 二维 结果形状:", result.shape)
+
+# 比较维度：a3d 形状 [5, 1, 4]，b2d 形状 [3, 1]
+# 从右向左：
+#   第0维（最右）：4 vs 1 → 1可广播为4
+#   第1维：1 vs 3 → 1可广播为3
+#   第2维（最左）：5 vs 缺失 → 缺失视为1，广播为5
+# 最终形状 [5, 3, 4]</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br><br><br><br>标量广播结果: tensor([3., 4., 5.])
+<br><br><br><br><br><br><br><br><br><br>矩阵 + 行向量:
+tensor([[11., 22., 33.],
+        [14., 25., 36.]])
+结果形状: torch.Size([2, 3])
+<br><br><br><br><br><br><br><br><br>矩阵 + 列向量:
+tensor([[11., 12., 13.],
+        [24., 25., 26.]])
+结果形状: torch.Size([2, 3])
+<br><br><br><br><br><br><br><br><br><br><br>三维 + 二维 结果形状: torch.Size([5, 3, 4])</code></pre>
+        </div>
+    </div>
+
+    <h3>3.5.2 广播规则的逐维度详细拆解</h3>
+    <p>以形状 [5, 1, 4] 和 [3, 1] 为例，逐步拆解广播过程：</p>
+    <p>第一步：对齐右端。将两个形状的右端对齐：</p>
+    <ul>
+        <li>张量A：[5, 1, 4]</li>
+        <li>张量B：[   3, 1]   （注意从右端对齐，B的3对应A的1，B的1对应A的4）</li>
+    </ul>
+    <p>第二步：从最右端开始向左逐个比较：</p>
+    <ul>
+        <li>最右端：A=4，B=1 → 条件满足（B为1），B扩展为4</li>
+        <li>右数第二位：A=1，B=3 → 条件满足（A为1），A扩展为3</li>
+        <li>右数第三位：A=5，B缺失 → 条件满足（缺失视为1），B扩展为5</li>
+    </ul>
+    <p>第三步：最终两个张量都广播为形状 [5, 3, 4]，然后执行逐元素运算。</p>
+
+    <h3>3.5.3 广播的内存效率</h3>
+    <p>广播并不会在内存中实际复制数据，而是通过设置步长（stride）为0来创建一个"虚拟视图"。这意味着即使广播后的逻辑形状很大，实际占用的内存仍然很小。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([1.0, 2.0, 3.0])
+y = x + 10
+
+# 这个加法操作中，10 并没有被真正扩展成一个包含三个10的张量
+# PyTorch 内部使用 stride=0 实现了"虚拟扩展"
+# 你可以通过以下方式验证步长（虽然通常不需要这样做）
+# 注意：对于简单的标量加法，PyTorch 内部有特殊优化，这里只是说明概念</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】广播机制（Broadcasting）</strong>：当两个张量形状不完全相同但满足特定条件时，PyTorch 自动将较小的张量"逻辑上扩展"到与较大张量相同的形状，使得逐元素运算能够进行。广播的核心设计理念是"不复制数据，只改变读取方式"（通过步长为0实现虚拟重复），因此内存和计算效率都很高。广播机制是 NumPy 风格数组编程的重要特性，在深度学习中广泛用于偏置项加法、归一化操作等场景。</p>
+    <p><strong>【名词解释】步长（Stride）</strong>：张量在内存中存储时，每个维度相邻元素之间的"跳跃"距离（以元素个数为单位）。步长决定了从当前位置移动到同一维度下一个位置需要跨越多少内存。广播机制利用步长为0的技巧，使得从不同"虚拟位置"读取数据时实际上指向同一个内存地址，从而实现"数据被复制"的视觉效果而不实际复制内存。</p>
+
+    <h3>3.5.4 广播失败的场景</h3>
+    <p>当从右向左比较维度时，如果两个维度大小不相等且没有一个是1，则广播失败，PyTorch 会抛出运行时错误。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>a = torch.randn(2, 3, 4)
+b = torch.randn(3, 5)
+
+print("a 的形状:", a.shape)
+print("b 的形状:", b.shape)
+
+# 以下代码会报错，取消注释可以看到错误信息
+# result = a + b
+
+# 错误原因分析：
+# 从右向左比较：
+#   最右端：4 vs 5 → 4 != 5 且都不是1 → 广播失败！
+# 报错信息会指出在第2维（从0开始计数）上 size 不匹配</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br><br>a 的形状: torch.Size([2, 3, 4])
+b 的形状: torch.Size([3, 5])<br><br><br>  File "wrong_dimension.py", line 8, in &lt;module&gt;
+    result = a + b
+             ~~^~~
+RuntimeError: The size of tensor a (4) must match the size of tensor b (5) at non-singleton dimension 2</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 3.6 原地操作 -->
+<div class="section-container" id="class-3-3.6">
+    <h2>3.6 原地操作（In-place Operations）与内存连续性</h2>
+
+    <h3 id="class-3-3.6.1">3.6.1 原地操作的基本概念</h3>
+    <p>PyTorch 中所有带 <code>_</code> 后缀的操作都是原地操作，即直接修改原张量而不创建新张量。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>import torch
+
+x = torch.tensor([1.0, 2.0, 3.0])
+print("原始 x:", x)
+
+# 原地加法
+x.add_(10)
+print("add_ 后 x:", x)
+
+# 原地乘法
+x.mul_(2)
+print("mul_ 后 x:", x)
+
+# 原地指数（e 的 x 次方）
+x.exp_()
+print("exp_ 后 x:", x)
+
+# 原地平方根
+x.sqrt_()
+print("sqrt_ 后 x:", x)
+
+# 原地归零
+x.zero_()
+print("zero_ 后 x:", x)
+
+# 原地填充指定值
+x.fill_(7.5)
+print("fill_(7.5) 后 x:", x)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br><br>原始 x: tensor([1., 2., 3.])<br><br><br>
+add_ 后 x: tensor([11., 12., 13.])<br><br><br>
+mul_ 后 x: tensor([22., 24., 26.])<br><br><br>
+exp_ 后 x: tensor([3.5849e+09, 2.6489e+10, 1.9573e+11])<br><br><br>
+sqrt_ 后 x: tensor([ 59874.1406, 162754.7969, 442413.3750])<br><br><br>
+zero_ 后 x: tensor([0., 0., 0.])<br><br><br>
+fill_(7.5) 后 x: tensor([7.5000, 7.5000, 7.5000])</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】原地操作（In-place Operation）</strong>：直接在原始张量的内存位置上修改数据，不分配新的内存。所有带 <code>_</code> 后缀的方法（如 <code>add_</code>、<code>mul_</code>、<code>relu_</code>、<code>zero_</code>、<code>fill_</code>）都是原地操作。优点是节省内存（尤其在处理大张量时），缺点是对需要求导的张量使用会破坏计算图。</p>
+
+    <h3 id="class-3-3.6.2">3.6.2 原地操作与自动求导的关系（重要）</h3>
+    <p>对 <code>requires_grad=True</code> 的张量使用原地操作会报错，因为这会破坏计算图的结构。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># 场景1：对需要求导的张量使用原地操作会报错
+x = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+
+# 以下代码会报错，取消注释查看错误信息
+# x.add_(10)
+
+# 正确做法：使用非原地版本
+y = x + 10
+print("非原地操作后的 y:", y)
+print("y 是否可求导:", y.requires_grad)
+
+# 场景2：对不需要求导的张量使用原地操作是安全的
+z = torch.tensor([1.0, 2.0, 3.0])  # requires_grad 默认为 False
+z.add_(10)
+print("原地修改后的 z:", z)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br><br>  File "wrong_leaf.py", line 7, in &lt;module&gt;
+    x.add_(10)
+    ~~~~~~^^^^
+RuntimeError: a leaf Variable that requires grad is being used in an in-place operation.<br>
+非原地操作后的 y: tensor([11., 12., 13.], grad_fn=&lt;AddBackward0&gt;)
+y 是否可求导: True<br><br><br><br>
+原地修改后的 z: tensor([11., 12., 13.])</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】叶子张量（Leaf Tensor）</strong>：由用户直接创建（而非通过运算产生）的张量，例如 <code>torch.tensor()</code> 直接创建的张量就是叶子张量。叶子张量是计算图的起点，只有叶子张量会保留最终的 <code>.grad</code> 属性。对叶子张量执行原地操作会破坏其与计算图之间的关联关系，因此 PyTorch 会抛出错误。</p>
+
+    <h3 id="class-3-3.6.3">3.6.3 原地形状操作：squeeze_ 和 unsqueeze_</h3>
+    <p>在形状操作中，只有 <code>squeeze_</code> 和 <code>unsqueeze_</code> 是标准 API。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>y = torch.randn(1, 3, 1, 4)
+print("y 原始形状:", y.shape)
+
+# squeeze_：原地移除所有大小为1的维度
+y.squeeze_()
+print("squeeze_ 后形状:", y.shape)
+
+# unsqueeze_：在原地插入一个大小为1的维度
+y.unsqueeze_(0)
+print("unsqueeze_(0) 后形状:", y.shape)
+
+# 可以指定插入位置
+y.unsqueeze_(2)
+print("unsqueeze_(2) 后形状:", y.shape)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>y 原始形状: torch.Size([1, 3, 1, 4])<br><br><br>
+squeeze_ 后形状: torch.Size([3, 4])<br><br><br>
+unsqueeze_(0) 后形状: torch.Size([1, 3, 4])<br><br><br>
+unsqueeze_(2) 后形状: torch.Size([1, 3, 1, 4])</code></pre>
+        </div>
+    </div>
+    <p><strong>为什么 <code>squeeze_</code> 和 <code>unsqueeze_</code> 是安全的？</strong></p>
+    <p>因为它们只涉及维度大小为 1 的增删，<strong>不改变元素总数</strong>，也不改变底层数据的排列顺序。它们只需要修改 shape 元数据中的一个数字（从 1 变成 0，或从 0 变成 1），操作非常简单且安全。而 <code>reshape</code>、<code>view</code>、<code>transpose</code>、<code>permute</code> 等涉及复杂的维度重排或元素总数不变但排列顺序可能改变，因此不提供原地版本。</p>
+
+    <h3 id="class-3-3.6.4">3.6.4 reshape_ 和 view_ 存在吗？——必须澄清</h3>
+    <p><strong><code>reshape_</code> 和 <code>view_</code> 都不存在</strong>，这是 PyTorch 中没有的 API。形状变换想要"原地"效果，直接用重新赋值的方式：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.arange(12)
+print("原始 x 形状:", x.shape)
+
+# 正确的"原地改变形状"方式：重新赋值
+x = x.view(3, 4)
+print("重新赋值后形状:", x.shape)
+
+# 或者使用 reshape
+x = x.reshape(2, 6)
+print("reshape 重新赋值后形状:", x.shape)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>原始 x 形状: torch.Size([12])<br><br><br>
+重新赋值后形状: torch.Size([3, 4])<br><br><br>
+reshape 重新赋值后形状: torch.Size([2, 6])</code></pre>
+        </div>
+    </div>
+
+    <h3 id="class-3-3.6.5">3.6.5 resize_：一个危险但存在的原地操作</h3>
+    <p><code>resize_</code> 是存在的原地形状操作，但它的行为非常危险，<strong>强烈不推荐初学者使用</strong>。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>w = torch.tensor([1.0, 2.0, 3.0, 4.0])
+print("原始 w:", w)
+print("原始形状:", w.shape)
+
+# resize_ 改变形状，元素总数不变时安全
+w.resize_(2, 2)
+print("resize_(2,2) 后 w:")
+print(w)
+print("形状:", w.shape)
+
+# 元素总数减少时，数据被截断
+w.resize_(2, 1)
+print("resize_(2,1) 后 w（数据被截断）:")
+print(w)
+
+# 元素总数增加时，新增位置填充垃圾值（0）
+w.resize_(2, 3)
+print("resize_(2,3) 后 w（填充0）:")
+print(w)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br>原始 w: tensor([1., 2., 3., 4.])
+原始形状: torch.Size([4])<br><br><br>
+resize_(2,2) 后 w:
+tensor([[1., 2.],
+        [3., 4.]])
+形状: torch.Size([2, 2])<br><br>
+resize_(2,1) 后 w（数据被截断）:
+tensor([[1.],
+        [2.]])<br>
+resize_(2,3) 后 w（填充0）:
+tensor([[1., 2., 3.],
+        [4., 0., 0.]])</code></pre>
+        </div>
+    </div>
+    <p><strong>为什么不推荐使用 <code>resize_</code>？</strong></p>
+    <ul>
+        <li>如果新形状的元素总数小于原形状，数据会被静默截断，你不会收到任何警告</li>
+        <li>如果新形状的元素总数大于原形状，新增位置会填充未初始化的值（通常是0）</li>
+        <li>这种行为容易导致难以发现的 bug</li>
+    </ul>
+
+    <h3 id="class-3-3.6.6">3.6.6 contiguous：内存连续性的概念</h3>
+    <p>这是之前没有讲过的新知识点，在理解张量的内存布局和视图操作时非常重要。</p>
+    <p><strong>什么是内存连续性？</strong></p>
+    <p>张量在内存中存储时，数据是一维的连续字节序列。一个张量是"连续"的，意味着它的元素在内存中按行主序（Row-major Order）连续排列，没有间隙。</p>
+    <p>对于形状为 [2, 3] 的二维张量，行主序存储意味着：</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>逻辑视图：           内存中的实际顺序：
+[[1, 2, 3],    →    [1, 2, 3, 4, 5, 6]
+ [4, 5, 6]]</code></pre>
+        </div>
+    </div>
+    <p><strong>什么情况下张量会变成"不连续"？</strong></p>
+    <p>当你执行 <code>transpose</code>、<code>permute</code> 或 <code>narrow</code> 等操作时，张量的逻辑视图和内存中的实际排列顺序可能会不一致。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># 创建一个连续张量
+x = torch.arange(12).reshape(3, 4)
+print("原始 x:")
+print(x)
+print("x 是否连续:", x.is_contiguous())
+
+# 转置操作：产生不连续的张量
+x_t = x.transpose(0, 1)
+print("转置后的 x_t:")
+print(x_t)
+print("x_t 是否连续:", x_t.is_contiguous())
+
+# 查看形状：逻辑上 x_t 是 [4, 3]
+print("x_t 形状:", x_t.shape)
+
+# 但内存中实际排列仍然是 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+# 只是 stride（步长）被修改了，使得从逻辑上看像是转置了</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>原始 x:
+tensor([[ 0,  1,  2,  3],
+        [ 4,  5,  6,  7],
+        [ 8,  9, 10, 11]])
+x 是否连续: True
+转置后的 x_t:
+tensor([[ 0,  4,  8],
+        [ 1,  5,  9],
+        [ 2,  6, 10],
+        [ 3,  7, 11]])
+x_t 是否连续: False
+x_t 形状: torch.Size([4, 3])</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】内存连续性（contiguous）</strong>：张量在内存中是否按行主序连续存储，没有跳跃或间隙。连续张量的元素在内存中是紧密排列的，访问效率高。当执行 <code>transpose</code>、<code>permute</code> 等操作时，张量可能变成不连续（逻辑形状变了，但内存排列没变）。不连续的张量在执行某些操作（尤其是 <code>view</code>）时会报错，需要先调用 <code>.contiguous()</code> 使其连续。</p>
+    <p><strong>为什么 <code>view</code> 要求张量连续？</strong></p>
+    <p><code>view</code> 只是修改张量的 shape 和 stride 元数据，不改变内存中的数据排列。如果张量不连续，简单的元数据修改无法正确表示新的逻辑形状，因此 <code>view</code> 要求张量必须是连续的。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.arange(12).reshape(3, 4)
+x_t = x.transpose(0, 1)
+
+print("x_t 是否连续:", x_t.is_contiguous())
+
+# 以下代码会报错，因为 x_t 不连续
+# x_t.view(-1)  # 取消注释会报错
+
+# 正确做法：先调用 contiguous()
+x_t_contiguous = x_t.contiguous()
+print("连续化后是否连续:", x_t_contiguous.is_contiguous())
+
+# 然后再 view
+x_t_flat = x_t_contiguous.view(-1)
+print("view 结果形状:", x_t_flat.shape)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>x_t 是否连续: False
+连续化后是否连续: True
+view 结果形状: torch.Size([12])</code></pre>
+        </div>
+    </div>
+    <p><strong><code>contiguous()</code> 做了什么？</strong></p>
+    <p><code>contiguous()</code> 会创建一个新的张量，将数据按照新的逻辑顺序重新排列到连续的内存中，从而保证新张量是连续的。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.arange(12).reshape(3, 4)
+print("原始 x 数据（连续排列）:")
+print(x)
+
+x_t = x.transpose(0, 1)
+print("转置后的 x_t（逻辑上已转置，但内存仍按行排列）:")
+print(x_t)
+
+x_c = x_t.contiguous()
+print("contiguous() 后的 x_c（内存已重新排列）:")
+print(x_c)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>原始 x 数据（连续排列）:
+tensor([[ 0,  1,  2,  3],
+        [ 4,  5,  6,  7],
+        [ 8,  9, 10, 11]])
+转置后的 x_t（逻辑上已转置，但内存仍按行排列）:
+tensor([[ 0,  4,  8],
+        [ 1,  5,  9],
+        [ 2,  6, 10],
+        [ 3,  7, 11]])
+contiguous() 后的 x_c（内存已重新排列）:
+tensor([[ 0,  4,  8],
+        [ 1,  5,  9],
+        [ 2,  6, 10],
+        [ 3,  7, 11]])</code></pre>
+        </div>
+    </div>
+    <p><strong><code>contiguous()</code> 的命名解释</strong>：</p>
+    <p><code>contiguous</code> 在英文中意为"连续的、相邻的"。在 PyTorch 中：</p>
+    <ul>
+        <li><code>x.is_contiguous()</code>：询问"x 在内存中是否连续"</li>
+        <li><code>x.contiguous()</code>：执行"将 x 转换为连续内存布局"的操作</li>
+    </ul>
+    <p><strong>【名词解释】行主序（Row-major Order）</strong>：多维数组在内存中的存储方式，将每一行的元素按顺序连续存放，行与行之间首尾相接。例如 [[1,2],[3,4]] 在内存中存储为 [1,2,3,4]。PyTorch（以及 NumPy、C 语言）默认使用行主序。这种布局与数学中矩阵的"行优先"概念一致。</p>
+    <p><strong>【名词解释】步长（Stride）</strong>：张量在内存中，从当前维度的某个元素移动到下一个元素需要"跳跃"的元素个数。对于连续张量，最后一维的步长为1，前一维的步长等于后一维的大小。当执行 <code>transpose</code> 后，步长会被重新计算，使得逻辑上看起来像转置了，但内存中的数据排列并没有改变。</p>
+
+    <h3 id="class-3-3.6.7">3.6.7 原地操作总结与建议</h3>
+    <p id="class-3-3.6.7.1"><strong>3.6.7.1 安全可用的原地操作</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># 数值运算（对 requires_grad=False 的张量安全）
+x.add_(1)
+x.mul_(2)
+x.zero_()
+x.fill_(7.5)
+
+# 维度压缩/扩展（始终安全）
+y.squeeze_()
+y.unsqueeze_(0)</code></pre>
+        </div>
+    </div>
+    <p id="class-3-3.6.7.2"><strong>3.6.7.2 不存在的原地操作</strong></p>
+    <ul>
+        <li><code>reshape_</code> ❌ 不存在</li>
+        <li><code>view_</code> ❌ 不存在</li>
+        <li><code>transpose_</code> ❌ 不存在</li>
+        <li><code>permute_</code> ❌ 不存在</li>
+    </ul>
+    <p id="class-3-3.6.7.3"><strong>3.6.7.3 推荐做法</strong></p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># 需要"原地"改变形状时，直接重新赋值
+x = x.view(3, 4)
+x = x.reshape(2, 6)
+x = x.transpose(0, 1)
+x = x.permute(2, 0, 1)
+
+# 在 view 之前，如果不确定是否连续，显式调用 contiguous()
+x = x.contiguous().view(-1)</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 3.7 张量比较与条件运算 -->
+<div class="section-container" id="class-3-3.7">
+    <h2>3.7 张量比较与条件运算</h2>
+
+    <h3 id="class-3-3.7.1">3.7.1 逐元素比较运算符</h3>
+    <p>比较运算符对两个张量逐元素进行比较，返回一个布尔张量（dtype 为 torch.bool），形状与输入张量相同。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([1.0, 2.0, 3.0, 4.0])
+y = torch.tensor([3.0, 1.0, 3.0, 5.0])
+
+print("x:", x)
+print("y:", y)
+
+greater = x > y
+print("x > y:", greater)
+
+greater_equal = x >= y
+print("x >= y:", greater_equal)
+
+less = x < y
+print("x < y:", less)
+
+less_equal = x <= y
+print("x <= y:", less_equal)
+
+equal = x == y
+print("x == y:", equal)
+
+not_equal = x != y
+print("x != y:", not_equal)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>x: tensor([1., 2., 3., 4.])
+y: tensor([3., 1., 3., 5.])
+x > y: tensor([False,  True, False, False])
+x >= y: tensor([False,  True,  True, False])
+x < y: tensor([ True, False, False,  True])
+x <= y: tensor([ True, False,  True,  True])
+x == y: tensor([False, False,  True, False])
+x != y: tensor([ True,  True, False,  True])</code></pre>
+        </div>
+    </div>
+
+    <h3 id="class-3-3.7.2">3.7.2 torch.where：条件选择函数</h3>
+    <p><code>torch.where</code> 是三目运算符 <code>a if condition else b</code> 的向量化版本，对每个位置独立判断。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([1.0, 2.0, 3.0, 4.0])
+y = torch.tensor([3.0, 1.0, 3.0, 5.0])
+
+# 逐元素比较，取较大值
+result = torch.where(x > y, x, y)
+print("逐元素取较大值:", result)
+
+# 将所有大于3的元素替换为3（阈值裁剪）
+threshold = 3.0
+clipped = torch.where(x > threshold, torch.tensor(3.0), x)
+print("将大于3的元素裁剪为3:", clipped)
+
+# 将所有小于2的元素替换为2
+clipped_low = torch.where(x < 2.0, torch.tensor(2.0), x)
+print("将小于2的元素裁剪为2:", clipped_low)
+
+# 将大于3的元素设为1，其余设为0（二值化）
+binary = torch.where(x > 3.0, torch.tensor(1.0), torch.tensor(0.0))
+print("二值化结果:", binary)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>逐元素取较大值: tensor([3., 2., 3., 5.])
+将大于3的元素裁剪为3: tensor([1., 2., 3., 3.])
+将小于2的元素裁剪为2: tensor([2., 2., 3., 4.])
+二值化结果: tensor([0., 0., 0., 1.])</code></pre>
+        </div>
+    </div>
+
+    <h3 id="class-3-3.7.3">3.7.3 全局条件判断</h3>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([1.0, 2.0, 3.0, 4.0])
+
+# 所有元素是否都大于0
+all_positive = torch.all(x > 0)
+print("所有元素大于0:", all_positive)
+
+# 是否存在元素大于3
+any_greater_3 = torch.any(x > 3)
+print("存在元素大于3:", any_greater_3)
+
+# 所有元素是否都大于3
+all_greater_3 = torch.all(x > 3)
+print("所有元素大于3:", all_greater_3)
+
+# 是否存在元素大于5
+any_greater_5 = torch.any(x > 5)
+print("存在元素大于5:", any_greater_5)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>所有元素大于0: tensor(True)
+存在元素大于3: tensor(True)
+所有元素大于3: tensor(False)
+存在元素大于5: tensor(False)</code></pre>
+        </div>
+    </div>
+
+    <h3 id="class-3-3.7.4">3.7.4 topk：取前 k 个最大值</h3>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([5.0, 2.0, 8.0, 1.0, 9.0, 3.0])
+
+# 取最大的2个值及其索引
+values, indices = torch.topk(x, k=2)
+print("最大的2个值:", values)
+print("对应的索引:", indices)
+
+# 取最小的3个值（通过取负数的topk实现，或者直接用参数）
+# torch.topk 默认取最大，如果要取最小，可以取负值
+values_min, indices_min = torch.topk(-x, k=3)
+print("最小的3个值:", -values_min)
+print("对应的索引:", indices_min)
+
+# 或者使用 torch.kthvalue 取第k小的值
+# 但 topk 更常用</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>最大的2个值: tensor([9., 8.])
+对应的索引: tensor([4, 2])
+最小的3个值: tensor([1., 2., 3.])
+对应的索引: tensor([3, 1, 5])
+</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】torch.where 函数</strong>：三元条件运算符的向量化实现。格式为 <code>torch.where(condition, x, y)</code>，对 condition 中每个位置独立判断：如果为 True，则取 x 中对应位置的值；如果为 False，则取 y 中对应位置的值。这等价于 Python 中的列表推导式 <code>[x_i if cond_i else y_i for cond_i, x_i, y_i in zip(cond, x, y)]</code>，但完全在 GPU 上并行执行，速度极快。常用于数据预处理中的异常值替换、阈值裁剪、条件掩码生成等场景。</p>
+</div>
+
+<!-- 3.8 其他常用数学函数 -->
+<div class="section-container" id="class-3-3.8">
+    <h2>3.8 其他常用数学函数</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([-2.0, -1.0, 0.0, 1.0, 2.0])
+print("原始 x:", x)
+
+# ---------- 绝对值 ----------
+abs_x = torch.abs(x)
+print("绝对值:", abs_x)
+
+# ---------- 符号函数 ----------
+# 返回：正数→1，负数→-1，零→0
+sign_x = torch.sign(x)
+print("符号函数:", sign_x)
+
+# ---------- 取整函数 ----------
+ceil_x = torch.ceil(x)
+print("向上取整:", ceil_x)
+
+floor_x = torch.floor(x)
+print("向下取整:", floor_x)
+
+# 四舍五入到最近的整数
+round_x = torch.round(x)
+print("四舍五入:", round_x)
+
+# ---------- 三角函数 ----------
+sin_x = torch.sin(x)
+print("sin(x):", sin_x)
+
+cos_x = torch.cos(x)
+print("cos(x):", cos_x)
+
+tan_x = torch.tan(x)
+print("tan(x):", tan_x)
+
+# ---------- clamp：截断到指定范围 ----------
+# 将所有小于 -1 的设为 -1，大于 1 的设为 1
+clamped = torch.clamp(x, min=-1.0, max=1.0)
+print("clamp 到 [-1, 1]:", clamped)
+
+# 只设下限（小于0的变成0）
+clamped_min = torch.clamp(x, min=0.0)
+print("clamp 下限为0:", clamped_min)
+
+# 只设上限（大于1的变成1）
+clamped_max = torch.clamp(x, max=1.0)
+print("clamp 上限为1:", clamped_max)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>原始 x: tensor([-2., -1.,  0.,  1.,  2.])
+绝对值: tensor([2., 1., 0., 1., 2.])
+符号函数: tensor([-1., -1.,  0.,  1.,  1.])
+向上取整: tensor([-2., -1.,  0.,  1.,  2.])
+向下取整: tensor([-2., -1.,  0.,  1.,  2.])
+四舍五入: tensor([-2., -1.,  0.,  1.,  2.])
+sin(x): tensor([-0.9093, -0.8415,  0.0000,  0.8415,  0.9093])
+cos(x): tensor([-0.4161,  0.5403,  1.0000,  0.5403, -0.4161])
+tan(x): tensor([ 2.1850, -1.5574,  0.0000,  1.5574, -2.1850])
+clamp 到 [-1, 1]: tensor([-1., -1.,  0.,  1.,  1.])
+clamp 下限为0: tensor([0., 0., 0., 1., 2.])
+clamp 上限为1: tensor([-2., -1.,  0.,  1.,  1.])</code></pre>
+        </div>
+    </div>
+    <p><strong>【名词解释】clamp 函数</strong>：将张量中每个元素的值限制在指定的区间 [min, max] 内。如果元素值小于 min，则设为 min；如果大于 max，则设为 max；否则保持不变。clamp 常用于防止数值溢出（如梯度裁剪）、保证数值在有效范围内（如图像像素值裁剪到 [0,1]）等场景。<code>torch.clamp</code> 与 <code>torch.where</code> 在功能上有部分重叠，但 <code>clamp</code> 更简洁高效，适合纯粹的截断操作。</p>
+</div>
+
+<!-- 3.9 练习 -->
+<div class="section-container" id="class-3-3.9">
+    <h2>3.9 练习</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>import torch
+
+# ---------- 练习1：逐元素运算与矩阵运算的区别 ----------
+print("=" * 50)
+print("练习1：逐元素运算与矩阵运算")
+print("=" * 50)
+
+a = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+b = torch.tensor([[2.0, 0.0], [1.0, 3.0]])
+
+print("a:")
+print(a)
+print("b:")
+print(b)
+
+# 1.1 逐元素乘法
+elementwise_mul = a * b
+print("逐元素乘法结果:")
+print(elementwise_mul)
+print("形状:", elementwise_mul.shape)
+
+# 1.2 矩阵乘法
+matrix_mul = torch.mm(a, b)
+print("矩阵乘法结果:")
+print(matrix_mul)
+print("形状:", matrix_mul.shape)
+
+# 1.3 观察两个结果是否相同？思考为什么
+
+
+# ---------- 练习2：规约运算 ----------
+print("\n" + "=" * 50)
+print("练习2：规约运算")
+print("=" * 50)
+
+x = torch.tensor([[2.0, 4.0, 6.0],
+                  [8.0, 10.0, 12.0],
+                  [14.0, 16.0, 18.0]])
+print("x:")
+print(x)
+
+# 2.1 计算所有元素的平均值
+mean_all = torch.mean(x)
+print("全局平均值:", mean_all)
+
+# 2.2 沿第0维求最大值，同时返回值和索引
+max_val, max_idx = torch.max(x, dim=0)
+print("沿第0维最大值:", max_val)
+print("最大值对应的索引:", max_idx)
+
+# 2.3 沿第1维求和，保持维度
+sum_keep = torch.sum(x, dim=1, keepdim=True)
+print("沿第1维求和（保持维度）:")
+print(sum_keep)
+print("形状:", sum_keep.shape)
+
+# 2.4 不保持维度的对比
+sum_no_keep = torch.sum(x, dim=1)
+print("沿第1维求和（不保持维度）:")
+print(sum_no_keep)
+print("形状:", sum_no_keep.shape)
+
+# 2.5 使用 argmax 找出每行最大值的列索引
+argmax_idx = torch.argmax(x, dim=1)
+print("每行最大值的列索引:", argmax_idx)
+
+
+# ---------- 练习3：广播机制 ----------
+print("\n" + "=" * 50)
+print("练习3：广播机制")
+print("=" * 50)
+
+a = torch.tensor([[1.0, 2.0, 3.0],
+                  [4.0, 5.0, 6.0]])
+b = torch.tensor([[10.0, 20.0, 30.0]])
+
+print("a 形状:", a.shape)
+print("b 形状:", b.shape)
+
+# 3.1 a + b
+result_ab = a + b
+print("a + b 结果:")
+print(result_ab)
+print("结果形状:", result_ab.shape)
+
+# 3.2 列向量广播
+c = torch.tensor([[10.0], [20.0]])
+print("c 形状:", c.shape)
+result_ac = a + c
+print("a + c 结果:")
+print(result_ac)
+print("结果形状:", result_ac.shape)
+
+# 3.3 尝试分析以下代码为什么会失败
+d = torch.tensor([10.0, 20.0])
+print("d 形状:", d.shape)
+# 下面的代码会报错，取消注释观察错误信息
+# result_ad = a + d
+
+
+# ---------- 练习4：torch.where 的应用 ----------
+print("\n" + "=" * 50)
+print("练习4：torch.where 应用")
+print("=" * 50)
+
+scores = torch.tensor([85.0, 92.0, 67.0, 78.0, 45.0])
+threshold = 60.0
+
+print("原始成绩:", scores)
+
+# 4.1 及格保留，不及格置为0
+passed = torch.where(scores >= threshold, scores, torch.tensor(0.0))
+print("过滤后成绩:", passed)
+
+# 4.2 将成绩转换为"Pass"(1)或"Fail"(0)
+pass_fail = torch.where(scores >= threshold, torch.tensor(1.0), torch.tensor(0.0))
+print("Pass(1)/Fail(0):", pass_fail)
+
+# 4.3 将成绩分类为 A(>=90), B(>=75), C(<75)
+# 使用嵌套的 torch.where
+grade = torch.where(scores >= 90, torch.tensor(4.0),
+                    torch.where(scores >= 75, torch.tensor(3.0),
+                                torch.tensor(2.0)))
+print("等级 (4=A, 3=B, 2=C):", grade)
+
+
+# ---------- 练习5：原地操作 ----------
+print("\n" + "=" * 50)
+print("练习5：原地操作")
+print("=" * 50)
+
+# 5.1 对不需要求导的张量进行原地操作
+z = torch.tensor([1.0, 2.0, 3.0, 4.0])
+print("原始 z:", z)
+z.add_(5)
+print("add_(5) 后 z:", z)
+z.mul_(2)
+print("mul_(2) 后 z:", z)
+z.zero_()
+print("zero_ 后 z:", z)
+
+# 5.2 观察原地操作是否改变了张量的形状
+z = torch.arange(12)
+print("z 原始形状:", z.shape)
+print("z 原始数据:", z)
+
+# 使用 view 重新赋值
+z = z.view(3, 4)
+print("view 重新赋值后形状:", z.shape)
+print("view 重新赋值后数据:")
+print(z)
+
+# 使用 reshape 重新赋值
+z = z.reshape(2, 6)
+print("reshape 重新赋值后形状:", z.shape)
+print("reshape 重新赋值后数据:")
+print(z)
+
+# 5.3 尝试对需要求导的张量使用原地操作
+# 取消注释观察错误
+# x_grad = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+# x_grad.add_(10)  # 这会报错</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>==================================================
+练习1：逐元素运算与矩阵运算
+==================================================<br><br><br><br><br><br>
+a:
+tensor([[1., 2.],
+        [3., 4.]])
+b:
+tensor([[2., 0.],
+        [1., 3.]])<br>
+逐元素乘法结果:
+tensor([[ 2.,  0.],
+        [ 3., 12.]])
+形状: torch.Size([2, 2])<br><br>
+矩阵乘法结果:
+tensor([[ 4.,  6.],
+        [10., 12.]])
+形状: torch.Size([2, 2])<br><br>
+
+==================================================
+练习2：规约运算
+==================================================<br><br>
+x:
+tensor([[ 2.,  4.,  6.],
+        [ 8., 10., 12.],
+        [14., 16., 18.]])<br><br><br><br><br>
+全局平均值: tensor(10.)<br><br><br>
+沿第0维最大值: tensor([14., 16., 18.])
+最大值对应的索引: tensor([2, 2, 2])<br><br><br>
+沿第1维求和（保持维度）:
+tensor([[12.],
+        [30.],
+        [48.]])
+形状: torch.Size([3, 1])<br>
+沿第1维求和（不保持维度）:
+tensor([12., 30., 48.])
+形状: torch.Size([3])<br><br><br>
+每行最大值的列索引: tensor([2, 2, 2])
+
+==================================================
+练习3：广播机制
+==================================================<br><br><br><br><br><br><br>
+a 形状: torch.Size([2, 3])
+b 形状: torch.Size([1, 3])<br><br>
+a + b 结果:
+tensor([[11., 22., 33.],
+        [14., 25., 36.]])
+结果形状: torch.Size([2, 3])<br><br><br>
+c 形状: torch.Size([2, 1])
+a + c 结果:
+tensor([[11., 12., 13.],
+        [24., 25., 26.]])
+结果形状: torch.Size([2, 3])<br><br>d 形状: torch.Size([2])<br>  File "wrong_dimension.py", line 98, in &lt;module&gt;
+    result_ad = a + d
+                ~~^~~
+RuntimeError: The size of tensor a (3) must match the size of tensor b (2) at non-singleton dimension 1
+
+==================================================
+练习4：torch.where 应用
+==================================================
+<br><br><br><br><br><br>原始成绩: tensor([85., 92., 67., 78., 45.])
+<br><br><br>过滤后成绩: tensor([85., 92., 67., 78.,  0.])
+<br><br><br>Pass(1)/Fail(0): tensor([1., 1., 1., 1., 0.])
+<br><br><br><br><br><br>等级 (4=A, 3=B, 2=C): tensor([3., 4., 2., 3., 2.])
+
+==================================================
+练习5：原地操作
+==================================================
+<br><br><br><br><br>原始 z: tensor([1., 2., 3., 4.])<br>
+add_(5) 后 z: tensor([6., 7., 8., 9.])<br>
+mul_(2) 后 z: tensor([12., 14., 16., 18.])<br>
+zero_ 后 z: tensor([0., 0., 0., 0.])<br><br><br>
+z 原始形状: torch.Size([12])
+z 原始数据: tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])<br>
+<br><br>view 重新赋值后形状: torch.Size([3, 4])
+view 重新赋值后数据:
+tensor([[ 0,  1,  2,  3],
+        [ 4,  5,  6,  7],
+        [ 8,  9, 10, 11]])<br>
+reshape 重新赋值后形状: torch.Size([2, 6])
+reshape 重新赋值后数据:
+tensor([[ 0,  1,  2,  3,  4,  5],
+        [ 6,  7,  8,  9, 10, 11]])<br>  File "wrong_leaf.py", line 162, in &lt;module&gt;
+    x_grad.add_(10)  # 这会报错
+    ~~~~~~~~~~~^^^^
+RuntimeError: a leaf Variable that requires grad is being used in an in-place operation.</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 3.10 总结 -->
+<div class="section-container" id="class-3-3.10">
+    <h2>3.10 总结</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>知识点</th>
+            <th>核心理解</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>逐元素运算</td>
+            <td>对应位置独立计算，形状必须相同或满足广播条件</td>
+        </tr>
+        <tr>
+            <td>标量广播</td>
+            <td>标量自动扩展到张量形状，通过 stride=0 实现虚拟扩展</td>
+        </tr>
+        <tr>
+            <td><code>torch.mm</code></td>
+            <td>二维矩阵乘法，A(m×n) × B(n×p) = C(m×p)</td>
+        </tr>
+        <tr>
+            <td><code>torch.bmm</code></td>
+            <td>批量矩阵乘法，batch 维度独立处理，数量必须一致</td>
+        </tr>
+        <tr>
+            <td><code>torch.matmul</code></td>
+            <td>通用矩阵乘法，自动适配维度，涵盖 mm/bmm/点积</td>
+        </tr>
+        <tr>
+            <td>向量点积</td>
+            <td>对应元素相乘再求和，用于相似度计算和注意力打分</td>
+        </tr>
+        <tr>
+            <td>规约运算</td>
+            <td>sum/mean/max 等沿指定维度压缩张量</td>
+        </tr>
+        <tr>
+            <td><code>dim</code> 参数</td>
+            <td>指定被消除的维度，dim=0 沿行压缩，dim=1 沿列压缩</td>
+        </tr>
+        <tr>
+            <td><code>keepdim=True</code></td>
+            <td>保留被压缩维度（大小为1），便于后续广播运算</td>
+        </tr>
+        <tr>
+            <td><code>argmax</code> vs <code>max</code></td>
+            <td>argmax 返回索引，max 返回值；分类任务用 argmax 取预测类别</td>
+        </tr>
+        <tr>
+            <td>广播机制</td>
+            <td>从右向左对齐比较，相等或为1或缺失即可广播</td>
+        </tr>
+        <tr>
+            <td>广播失败</td>
+            <td>两个维度不相等且都不为1时无法广播</td>
+        </tr>
+        <tr>
+            <td>原地操作</td>
+            <td>带 <code>_</code> 后缀，直接修改原张量；requires_grad=True 时禁止使用</td>
+        </tr>
+        <tr>
+            <td>计算图</td>
+            <td>记录操作历史用于反向传播，原地操作会破坏计算图</td>
+        </tr>
+        <tr>
+            <td><code>torch.where</code></td>
+            <td>向量化三元运算符，逐元素条件选择</td>
+        </tr>
+        <tr>
+            <td><code>torch.clamp</code></td>
+            <td>截断到指定范围，防止数值溢出</td>
+        </tr>
+        <tr>
+            <td><code>torch.topk</code></td>
+            <td>取前 k 个最大值及其索引</td>
+        </tr>
+        <tr>
+            <td><code>torch.all / any</code></td>
+            <td>全局布尔判断，所有为 True 或任意为 True</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 3.11 常见错误速查 -->
+<div class="section-container" id="class-3-3.11">
+    <h2>3.11 常见错误速查</h2>
+    <ul>
+        <li>混淆 <code>*</code>（逐元素乘法）和 <code>torch.mm</code>（矩阵乘法）</li>
+        <li>矩阵乘法时忘记检查 <code>dim1</code> 是否等于 <code>dim0</code></li>
+        <li>广播失败时没有注意到形状从右向左对齐比较</li>
+        <li>对 <code>requires_grad=True</code> 的张量使用原地操作导致报错</li>
+        <li><code>argmax</code> 与 <code>max</code> 混淆，返回值与索引分不清</li>
+    </ul>
+</div>
+<script>
+    document.querySelectorAll('.section-container').forEach(section => {
+        section.addEventListener('mouseenter', () => {
+            if (section.id === 'class-3-3.6') {
+                section.style.transform = 'scale(1.005)';
+            } else if (section.id === 'class-3-3.9') {
+                section.style.transform = 'scale(1.01)';
+            }
+            else section.style.transform = 'scale(1.03)';
+            section.style.backdropFilter = 'none'
+            section.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)'
+        })
+
+        section.addEventListener('mouseleave', () => {
+            section.style.transform = 'scale(1)';
+            section.style.backdropFilter = 'blur(10px)'
+            section.style.boxShadow = 'none'
+        })
+    })
+</script>
+</body>
+</html>
