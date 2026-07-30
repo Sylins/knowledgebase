@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第4课：自动求导机制（Autograd）——从原理到实现的深度剖析</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../../../preview.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #1e293b;
+        }
+        h1 {
+            text-align: center;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        h3 {
+            color: #334155;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        pre {
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background-color: rgb(241 245 249 / 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 1px;
+            border-radius: 5px;
+            font-size: inherit;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgb(255 255 255 / 0.5);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: rgb(248 250 252 / 0.5);
+            color: #0f172a;
+            font-weight: 600;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: rgb(248 250 252 / 0.5);
+        }
+        .section-container {
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            transition: all 0.8s ease;
+        }
+        .code-inline {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        strong {
+            color: #0f172a;
+        }
+        .emphasis-note {
+            background-color: #fef9c3;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .code-output-row {
+            align-items: stretch;
+            display: flex;
+            gap: 20px;
+        }
+        .code-output-row .code-col,
+        .code-output-row .output-col {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+        }
+        .output-col pre {
+            flex: 1;
+            background-color: rgb(248 250 252 / 0.5);
+            border: 2px dashed #cbd5e1;
+        }
+        .code-col pre {
+            flex: 1;
+        }
+
+        .code-col pre::-webkit-scrollbar,
+        .output-col pre::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .code-col pre::-webkit-scrollbar-track,
+        .output-col pre::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb,
+        .output-col pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .code-col pre::-webkit-scrollbar-thumb:hover,
+        .output-col pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body>
+<video autoplay muted loop playsinline style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    z-index: -1;
+                    border-radius: 10px;
+                ">
+    <source src="../../../PyTorch_background_video.mp4" type="video/mp4">
+</video>
+
+<h1>第4课：自动求导机制（Autograd）——从原理到实现的深度剖析</h1>
+
+<hr>
+
+<!-- 4.1 为什么需要梯度？ -->
+<div class="section-container" id="class-4-4.1">
+    <h2>4.1 为什么需要梯度？——机器学习的最优化本质</h2>
+
+    <h3 id="class-4-4.1.1">4.1.1 机器学习的核心问题</h3>
+    <p>机器学习，尤其是深度学习，本质上是一个<strong>最优化问题</strong>。我们有一个模型（比如一个神经网络），它有很多可调节的参数（权重和偏置）。模型接收输入数据，产生输出预测。</p>
+    <p>模型当前的预测结果与真实结果之间存在差距，这个差距用<strong>损失函数（Loss Function）</strong>来衡量。损失函数的值越大，表示模型表现越差。</p>
+    <p>我们的目标就是：<strong>找到一组参数值，使得损失函数的值最小。</strong></p>
+    <p>这就像你在一个陌生的山谷中，大雾弥漫，你看不到谷底在哪里，但你脚踩的地方能感觉到坡度。你要找到山谷的最低点。</p>
+
+    <h3 id="class-4-4.1.2">4.1.2 梯度：指向"山坡"的方向</h3>
+    <p><strong>梯度</strong>就是那个"坡度"。它是一个向量，指向函数值<strong>增长最快</strong>的方向。</p>
+    <p>如果你的位置在山的半山腰，梯度指向的是<strong>上坡</strong>方向。我们要下山，就要沿着梯度的<strong>反方向</strong>迈出一步。这就是<strong>梯度下降法（Gradient Descent）</strong>的核心思想。</p>
+    <p>参数更新的基本公式是：</p>
+    <p>\[ \text{新参数} = \text{旧参数} - \text{学习率} \times \text{梯度} \]</p>
+    <ul>
+        <li><strong>学习率（Learning Rate）</strong>：决定每一步迈多大。步子太小，下山太慢；步子太大，可能错过谷底甚至滚下山。</li>
+    </ul>
+    <p><strong>【名词解释】最优化（Optimization）</strong>：在数学上，最优化是寻找使某个目标函数（在此为损失函数）达到最大值或最小值的一组输入变量（在此为模型参数）的过程。</p>
+    <p><strong>【名词解释】梯度下降（Gradient Descent）</strong>：一种迭代优化算法，通过计算目标函数在当前点的梯度，并沿着梯度反方向更新变量，以寻找局部最小值。它是最基础的神经网络训练算法。</p>
+</div>
+
+<!-- 4.2 为什么需要反向传播？ -->
+<div class="section-container" id="class-4-4.2">
+    <h2>4.2 为什么需要反向传播？——梯度的计算效率问题</h2>
+
+    <h3 id="class-4-4.2.1">4.2.1 数值微分法（最笨的方法）</h3>
+    <p>假设你的网络有1亿个参数，你想知道每个参数的微小变化会如何影响最终的损失。一种最朴素的方法是<strong>数值微分</strong>：</p>
+    <p>对于每个参数 \(w_i\)，你给它加上一个微小的扰动 \(\varepsilon\)（比如 0.0001），计算一个新的损失 \(L(w_i + \varepsilon)\)，然后计算 \((L(w_i + \varepsilon) - L(w_i)) / \varepsilon\) 来估计梯度。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code># 伪代码展示数值微分的低效性
+def compute_gradient_numerically(model, loss_fn, data, epsilon=1e-5):
+    gradients = []
+    for each_parameter in model.all_parameters():
+        # 1. 保存原始值
+        original_value = each_parameter.value
+
+        # 2. 加微小扰动，计算新损失
+        each_parameter.value += epsilon
+        loss_plus = loss_fn(model(data))
+
+        # 3. 恢复原值
+        each_parameter.value = original_value
+
+        # 4. 计算梯度估计
+        grad = (loss_plus - loss_original) / epsilon
+        gradients.append(grad)
+    return gradients</code></pre>
+        </div>
+    </div>
+
+    <h3 id="class-4-4.2.2">4.2.2 数值微分的致命缺陷</h3>
+    <p>用这种方法计算所有参数的梯度，需要<strong>1次前向传播（计算原始损失）+ N次前向传播（N为参数个数）</strong>。对于1亿个参数，你需要进行1亿零1次前向传播。即使每次前向传播只需要1毫秒，总共也需要大约<strong>11.5天</strong>。这还是一次迭代的时间！显然不可行。</p>
+
+    <h3 id="class-4-4.2.3">4.2.3 反向传播：一次前向，一次反向搞定所有梯度</h3>
+    <p><strong>反向传播（Backpropagation）</strong> 是解决这个效率问题的关键。它只需要<strong>一次前向传播</strong>和<strong>一次反向传播</strong>，就能同时计算出所有参数的梯度。</p>
+    <p><strong>核心思想</strong>：反向传播利用了微积分中的<strong>链式法则（Chain Rule）</strong>。它先计算出输出端（损失）对每个中间变量的梯度，然后从后往前，将这些梯度"传递"回输入端，复用已经计算好的结果，避免了重复计算。</p>
+    <p>想象一下流水线：前向传播是从原料（输入）到成品（损失）的过程。反向传播则是从成品出发，逆向追溯每个环节对最终成本的"贡献度"。</p>
+    <p><strong>【名词解释】链式法则（Chain Rule）</strong>：微积分中的一个基本法则，用于计算复合函数的导数。如果 \(y = f(g(x))\)，那么 \(dy/dx = (dy/dg) \cdot (dg/dx)\)。反向传播正是通过反复应用链式法则，从输出端反向逐层计算梯度。</p>
+    <p><strong>【名词解释】前向传播（Forward Propagation）</strong>：数据从输入层进入，逐层计算并通过网络，最终得到输出（或损失）的过程。它是反向传播的"信息记录"阶段。</p>
+</div>
+
+<!-- 4.3 计算图 -->
+<div class="section-container" id="class-4-4.3">
+    <h2>4.3 计算图：自动求导的"工程蓝图"</h2>
+
+    <h3 id="class-4-4.3.1">4.3.1 为什么PyTorch需要记录"操作历史"？</h3>
+    <p>要进行反向传播，PyTorch必须知道：</p>
+    <ol>
+        <li>从输入到输出，<strong>经过了哪些操作</strong>（加、乘、卷积等）。</li>
+        <li>这些操作发生的<strong>顺序</strong>。</li>
+        <li>每个操作涉及了<strong>哪些张量</strong>。</li>
+    </ol>
+    <p>这个"历史记录"就是<strong>计算图（Computation Graph）</strong>。</p>
+
+    <h3 id="class-4-4.3.2">4.3.2 计算图的构建：每个张量都是一个"历史档案"</h3>
+    <p>当你执行 <code>x = torch.tensor(2.0, requires_grad=True)</code> 时，你创建了一个特殊的张量，它自带一个"空档案"（<code>grad_fn=None</code>），表示它本身不是一个运算的结果。</p>
+    <p>当你执行 <code>y = x * x</code> 时，PyTorch在幕后做了三件事：</p>
+    <ol>
+        <li>执行计算：计算 <code>x*x</code> 的值。</li>
+        <li>创建新张量 <code>y</code>。</li>
+        <li>在 <code>y</code> 的"档案"（<code>grad_fn</code>）里，记录了它的"出生信息"：它是一个<strong>乘法操作（MulBackward）</strong>的产物，这个操作的<strong>输入是 <code>x</code></strong>。</li>
+    </ol>
+    <p>当你执行 <code>z = y.sum()</code> 时，PyTorch又创建了 <code>z</code>，并在 <code>z.grad_fn</code> 中记录了它是一个<strong>求和操作（SumBackward）</strong>的产物。</p>
+    <p><strong>【名词解释】有向无环图（DAG, Directed Acyclic Graph）</strong>：计算图在计算机科学中是一种有向无环图，其中节点代表张量或运算，边代表数据流向。它保证了信息可以沿着边从输入流向输出（前向），也可以从输出追溯回输入（反向），且不会形成死循环。</p>
+
+    <h3 id="class-4-4.3.3">4.3.3 深入 <code>grad_fn</code>：里面到底存了什么？</h3>
+    <p><code>grad_fn</code> 不仅仅是一个标签。它是一个<strong>函数对象</strong>，包含了如何计算这个操作的反向传播梯度的方法（<code>backward()</code>）。以 <code>y = x * x</code> 的 <code>grad_fn</code>（<code>MulBackward</code>）为例，它知道：</p>
+    <ul>
+        <li>这个操作是乘法。</li>
+        <li>它的输入是 <code>x</code>。</li>
+        <li>当反向传播时，梯度需要乘以另一个输入（因为 \(\frac{d(x^2)}{dx} = 2x\)）。</li>
+    </ul>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>import torch
+
+x = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+y = x * x
+z = y.sum()
+
+print("节点 x 的 grad_fn:", x.grad_fn)
+print("节点 y 的 grad_fn:", y.grad_fn)
+print("节点 z 的 grad_fn:", z.grad_fn)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>节点 x 的 grad_fn: None
+节点 y 的 grad_fn: &lt;MulBackward0 object at 0x000000003661C310&gt;
+节点 z 的 grad_fn: &lt;SumBackward0 object at 0x000000003665A260&gt;
+</code></pre>
+        </div>
+    </div>
+    <p><strong>这个 <code>grad_fn</code> 就是反向传播的 "活地图"</strong>。它把整个前向计算过程串联成了一个可追溯的链条。</p>
+</div>
+
+<!-- 4.4 backward() 的内部机制 -->
+<div class="section-container" id="class-4-4.4">
+    <h2>4.4 <code>backward()</code> 的内部机制：逆向遍历并计算</h2>
+    <p>当你调用 <code>z.backward()</code> 时，PyTorch 会在后台执行一个精密的流程：</p>
+    <ol>
+        <li><strong>定位起点</strong>：PyTorch 从调用 <code>backward()</code> 的根节点 <code>z</code> 开始。它查看 <code>z.grad_fn</code>，发现它是一个 <code>SumBackward</code>。</li>
+        <li><strong>逆向遍历</strong>：<code>SumBackward</code> 知道它的前向输入是 <code>y</code>。它会根据求和操作的反向传播规则，计算出对 <code>y</code> 的梯度，并将这个梯度传递给 <code>y</code>。</li>
+        <li><strong>递归传递</strong>：<code>y</code> 收到梯度后，它的 <code>grad_fn</code>（<code>MulBackward</code>）知道它的输入是 <code>x</code>。它使用乘法操作的反向传播规则（乘以另一个输入），计算出对 <code>x</code> 的梯度。</li>
+        <li><strong>到达叶子节点并累加</strong>：最终，梯度到达了叶子节点 <code>x</code>。PyTorch 将计算出的梯度<strong>累加</strong>到 <code>x.grad</code> 属性中。</li>
+    </ol>
+    <p><strong>这个"逆向遍历"的过程在C++底层高度优化并并行执行，比我们手动实现要快几个数量级。</strong></p>
+</div>
+
+<!-- 4.5 为什么梯度是累加的？ -->
+<div class="section-container" id="class-4-4.5">
+    <h2>4.5 为什么梯度是累加的？——设计哲学与工程考量</h2>
+    <p>这是PyTorch设计中一个非常核心，也容易让人困惑的决定。</p>
+
+    <h3 id="class-4-4.5.1">4.5.1 为什么不直接覆盖？</h3>
+    <p>如果每次 <code>backward()</code> 都直接覆盖 <code>grad</code>，那么每次反向传播都是孤立的，这虽然简单，却极大地限制了灵活性。</p>
+
+    <h3 id="class-4-4.5.2">4.5.2 梯度累加带来的灵活性</h3>
+    <p><strong>场景一：复杂的损失函数</strong></p>
+    <p>很多模型的损失函数不是单一的，而是由多个部分加权求和组成的，例如 <code>loss = loss_1 + loss_2</code>。我们希望在同一组参数上，同时计算 <code>loss_1</code> 和 <code>loss_2</code> 的梯度，并将它们结合起来。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>loss1 = ...
+loss2 = ...
+loss = loss1 + loss2
+loss.backward()  # 一次反向传播，梯度的累加自动完成</code></pre>
+        </div>
+    </div>
+    <p>你只需要进行一次反向传播，对 <code>loss</code> 求导，由于线性关系，其结果就自动等于 <code>loss1</code> 和 <code>loss2</code> 梯度的和。</p>
+    <p><strong>场景二：梯度累积（Gradient Accumulation）</strong></p>
+    <p>这是深度学习中的一个重要技巧。当你的GPU显存不够，无法放入大的 <code>batch_size</code> 时，你可以模拟大的 <code>batch_size</code>。具体做法是：将一个大批次分成几个小批次，逐个计算每个小批次的损失并调用 <code>backward()</code>。因为梯度是累加的，所以最后 <code>x.grad</code> 中存储的就是所有小批次梯度的总和。然后，你再调用 <code>optimizer.step()</code> 更新一次参数。这就相当于用一个大的 <code>batch_size</code> 进行了一次梯度计算和更新。</p>
+
+    <h3 id="class-4-4.5.3">4.5.3 如果不累加会怎么样？</h3>
+    <p>如果梯度是覆盖的，那么上述所有场景都将失效。你将无法组合多个损失，也无法实现梯度累积。PyTorch 将 <code>backward()</code> 的职责定义为"计算并贡献（累加）梯度"，而把"清零"的职责交给了用户，这在设计上更灵活，责任更清晰。</p>
+</div>
+
+<!-- 4.6 停止求导的必要性 -->
+<div class="section-container" id="class-4-4.6">
+    <h2>4.6 停止求导的必要性：<code>detach()</code> 与 <code>torch.no_grad()</code></h2>
+
+    <h3 id="class-4-4.6.1">4.6.1 为什么需要停止求导？</h3>
+    <ol>
+        <li><strong>推理/评估阶段</strong>：在模型训练完成后，或者在一个验证集上评估模型性能时，我们只想得到模型的输出，而不需要（也不应该）更新任何参数。构建计算图会消耗额外的时间和内存，完全没有必要。</li>
+        <li><strong>转移/提取特征</strong>：有时候，我们希望将某些张量从计算图中"抽离"出来，作为一个独立的数值，用于后续的、不需要梯度的处理。</li>
+    </ol>
+
+    <h3 id="class-4-4.6.2">4.6.2 <code>torch.no_grad()</code>：高效的上下文管理器</h3>
+    <p>这是一个<strong>上下文管理器</strong>，它临时性地将 <code>requires_grad</code> 设置为 <code>False</code>，并阻止整个计算图的构建。这是最推荐的方式，因为它最高效。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([1.0, 2.0], requires_grad=True)
+y = x * 2  # 这里计算图被构建了，y.requires_grad 为 True
+
+with torch.no_grad():
+    # 在这个块内，所有操作都不会被记录
+    z = x * 3  # 这里不会构建计算图，z.requires_grad 为 False
+    w = y + 1  # 注意：y 虽然需要梯度，但在块内操作 y，不会影响 y 本身
+               # w 的 requires_grad 也为 False
+print("w.requires_grad:", w.requires_grad)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>w.requires_grad: False</code></pre>
+        </div>
+    </div>
+
+    <h3 id="class-4-4.6.3">4.6.3 <code>.detach()</code>：精准的"切割手术"</h3>
+    <p><code>.detach()</code> 是一个张量方法。它会切断该张量与当前计算图之间的<strong>关联</strong>，返回一个新的张量，这个新张量与原始张量共享数据，但 <code>requires_grad</code> 为 <code>False</code>。</p>
+    <p><strong>理解 <code>.detach()</code> 的关键：它是"源头"上的切断，而非"路径"上的阻断。</strong></p>
+    <p>你可以这样理解：</p>
+    <ul>
+        <li>原始 <code>x</code> 的计算图不受影响。</li>
+        <li><code>y_detached</code> 是一个<strong>全新的起点</strong>，它从 <code>y</code> 那里"复制"了数值，但撕毁了与 <code>y</code> 的"血缘关系"证明。</li>
+        <li>所有对 <code>y_detached</code> 进行的后续操作，都会围绕这个新起点构建一个<strong>全新的、独立的计算图</strong>。这个新图与原始的 <code>x</code>、<code>y</code> 没有任何关联。</li>
+    </ul>
+    <div class="code-output-row">
+        <div class="code-col">
+        <pre><code>x = torch.tensor([1.0, 2.0], requires_grad=True)
+y = x * 2                     # y 在原始计算图中
+y_detached = y.detach()       # y_detached 从原始图中剥离出来，成为一个新起点
+
+# 对剥离出来的 y_detached 进行后续操作
+z = y_detached * 3
+w = z + 1
+
+# 检查张量的属性
+print("原始计算图节点 y.requires_grad:", y.requires_grad)
+print("原始计算图节点 y.grad_fn:", y.grad_fn)
+
+print("\n剥离后的新起点 y_detached.requires_grad:", y_detached.requires_grad)
+print("剥离后的新起点 y_detached.grad_fn:", y_detached.grad_fn)
+
+print("\n基于新起点的 z.requires_grad:", z.requires_grad)
+print("基于新起点的 z.grad_fn:", z.grad_fn)
+print("基于新起点的 w.requires_grad:", w.requires_grad)
+print("基于新起点的 w.grad_fn:", w.grad_fn)   </code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>原始计算图节点 y.requires_grad: True
+原始计算图节点 y.grad_fn: &lt;MulBackward0 object at 0x000000003F083490&gt;
+
+剥离后的新起点 y_detached.requires_grad: False
+剥离后的新起点 y_detached.grad_fn: None
+
+基于新起点的 z.requires_grad: False
+基于新起点的 z.grad_fn: None
+基于新起点的 w.requires_grad: False
+基于新起点的 w.grad_fn: None</code></pre>
+        </div>
+    </div>
+    <p><strong>核心结论：</strong></p>
+    <ul>
+        <li><code>y_detached.requires_grad</code> 为 <code>False</code>，因为它从 <code>y</code> 剥离时，带走了数据，但舍弃了"需要梯度"这个属性。</li>
+        <li>由于 <code>y_detached</code> 是 <code>False</code>，那么它参与的所有后续运算（<code>z</code>、<code>w</code>）的 <code>requires_grad</code> 也都是 <code>False</code>，因此它们的 <code>grad_fn</code> 都是 <code>None</code>。它们不在任何计算图中，只是一个普通的数值载体。</li>
+        <li><code>.detach()</code> 是创建一个独立的"数值副本"，这个副本不再属于原始计算图，因此它的 <code>requires_grad</code> 为 <code>False</code>，<code>grad_fn</code> 为 <code>None</code>。</li>
+    </ul>
+    <p><strong>错误理解 vs 正确理解：</strong></p>
+    <table>
+        <thead>
+        <tr>
+            <th>错误理解</th>
+            <th>正确理解</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><code>.detach()</code> 只是切断了反向传播的路径，但后续操作仍可能被记录。</td>
+            <td><code>.detach()</code> 创建了一个全新的、不依赖任何计算图的根节点。从此节点开始的所有运算，都不会被记录到任何计算图中。</td>
+        </tr>
+        <tr>
+            <td>后续操作的 <code>grad_fn</code> 可能存在，只是与原始图无关。</td>
+            <td>后续操作的 <code>requires_grad</code> 都为 <code>False</code>，因此 <code>grad_fn</code> 一定为 <code>None</code>。它们根本不属于任何计算图。</td>
+        </tr>
+        </tbody>
+    </table>
+    <p><strong><code>.detach()</code> 的典型使用场景：</strong></p>
+    <ul>
+        <li><strong>提取特征用于分析</strong>：你想把网络中间层的输出拿出来，做一些与训练无关的处理（如可视化、保存为特征文件），这时可以用 <code>.detach()</code> 避免这些操作干扰网络训练。</li>
+        <li><strong>对抗样本生成</strong>：在一些攻击算法中，你可能需要先冻结模型，然后对输入进行修改，这时可以用 <code>.detach()</code> 切断模型参数与输入修改之间的梯度关系。</li>
+        <li><strong>强化学习中的经验回放</strong>：当你从经验池中采样数据进行训练时，这些数据是历史产生的，不应该影响当前策略网络的梯度计算。</li>
+    </ul>
+    <div class="code-output-row">
+        <div class="code-col">
+        <pre><code># 实际应用示例：提取特征用于可视化
+model = ...  # 假设有一个训练好的模型
+x = torch.randn(1, 3, 224, 224, requires_grad=False)  # 输入图片
+
+with torch.no_grad():  # 推理时推荐使用 no_grad，而非 detach
+    feature = model.layer3(x)  # 提取某层特征
+
+# 假设你有一个可视化函数，它可能包含需要梯度的操作（例如对比度增强）
+# 但你不想让这些操作影响模型本身的参数
+feature_for_viz = feature.detach()  # 切离，成为一个独立的数值
+visualized = visualize(feature_for_viz)  # 此时 visualized 与模型完全无关</code></pre>
+        </div>
+    </div>
+
+    <h3 id="class-4-4.6.4">4.6.4 如果不停止求导会怎样？</h3>
+    <p>如果在评估一个大型模型时，没有使用 <code>torch.no_grad()</code>，那么即使你不需要梯度，PyTorch 仍然会耗费大量内存去构建计算图，并浪费计算资源来追踪它。这会导致评估速度变慢，甚至因内存溢出（OOM）而崩溃。</p>
+</div>
+
+<!-- 4.7 retain_graph -->
+<div class="section-container" id="class-4-4.7">
+    <h2>4.7 <code>retain_graph</code>：保留计算图</h2>
+
+    <h3 id="class-4-4.7.1">4.7.1 为什么默认会被释放？</h3>
+    <p>为了最大化内存利用效率，PyTorch 在执行完一次 <code>backward()</code> 后，会默认<strong>释放</strong>（或说是标记为可回收）计算图。因为绝大多数情况下，你只需要进行一次反向传播来更新参数。</p>
+
+    <h3 id="class-4-4.7.2">4.7.2 什么时候需要保留？</h3>
+    <p>你需要对<strong>同一个计算图</strong>进行多次反向传播时。例如：</p>
+    <ul>
+        <li>你有一个大模型，你想先对一部分层更新，再对另一部分层更新。</li>
+        <li>你在进行一些研究，需要计算二阶导数（即梯度再求导）。</li>
+    </ul>
+
+    <h3 id="class-4-4.7.3">4.7.3 如果忘记释放会怎样？</h3>
+    <p>如果你设置 <code>retain_graph=True</code> 但却没有在之后手动释放（<code>del</code>），该计算图会一直驻留在内存中，直到变量被销毁。在一个训练循环中，这会导致每轮迭代都保留一个计算图，最终导致<strong>内存泄漏（Memory Leak）</strong>，程序会逐渐耗尽所有显存。</p>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>x = torch.tensor([1.0, 2.0], requires_grad=True)
+y = x * x
+
+# 第一次反向传播，并告诉 PyTorch "别急着删"
+y.sum().backward(retain_graph=True)
+print("第一次 x.grad:", x.grad)
+
+# 第二次反向传播，仍然可以使用同一个计算图
+y.prod().backward()  # prod() 对所有元素求乘积
+print("第二次 x.grad:", x.grad)</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code>第一次 x.grad: tensor([2., 4.])
+第二次 x.grad: tensor([10.,  8.])</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 4.8 源代码级思考 -->
+<div class="section-container" id="class-4-4.8">
+    <h2>4.8 源代码级思考：<code>backward()</code> 到底做了什么？</h2>
+    <p>虽然我们无法完全剖析PyTorch庞大的C++源码，但可以理解其核心概念：</p>
+    <ol>
+        <li><strong>查找根节点</strong>：从调用 <code>.backward()</code> 的 <code>loss</code> 张量开始，其 <code>grad_fn</code> 指向了最后一个操作（例如 <code>LossBackward</code>）。</li>
+        <li><strong>触发反向传播回调</strong>：调用 <code>grad_fn</code> 的 <code>apply()</code> 方法。每个 <code>grad_fn</code> 内部都实现了 <code>apply()</code>，它知道如何计算该操作对输入的梯度。</li>
+        <li><strong>反向传递数据</strong>：<code>apply()</code> 方法会计算出梯度（一个或多个张量），并将它们传递给前一个节点（即该操作的输入节点）的 <code>grad_fn</code>。</li>
+        <li><strong>累加结果</strong>：当梯度最终到达一个叶子张量（<code>grad_fn</code> 为 <code>None</code>）时，PyTorch 将其累加到该张量的 <code>grad</code> 属性上。</li>
+    </ol>
+    <p>这个过程是深度优先遍历（DFS）的，确保所有依赖都被满足。</p>
+</div>
+
+<!-- 4.9 grad 为 None 的常见原因 -->
+<div class="section-container" id="class-4-4.9">
+    <h2>4.9 <code>grad</code> 为 <code>None</code> 的常见原因（故障排查）</h2>
+    <p>这是最实用的部分。</p>
+    <table>
+        <thead>
+        <tr>
+            <th>可能原因</th>
+            <th>代码示例/场景</th>
+            <th>分析</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><strong>未开启 <code>requires_grad</code></strong></td>
+            <td><code>x = torch.tensor(1.0)</code></td>
+            <td>叶子张量未要求追踪。</td>
+        </tr>
+        <tr>
+            <td><strong>张量不是叶子节点</strong></td>
+            <td><code>x = torch.tensor(1.0, requires_grad=True); y = x*2;</code></td>
+            <td><code>y</code> 是中间节点，其 <code>.grad</code> 默认不保留。若需保留，使用 <code>y.retain_grad()</code>。</td>
+        </tr>
+        <tr>
+            <td><strong>计算图断裂</strong></td>
+            <td><code>x_detached = x.detach()</code> 或 <code>with torch.no_grad():</code></td>
+            <td>你在调用 <code>backward()</code> 之前，将张量从图中切断了。</td>
+        </tr>
+        <tr>
+            <td><strong>未调用 <code>backward()</code></strong></td>
+            <td>在训练循环中，你可能忘记写 <code>loss.backward()</code>。</td>
+            <td>最基础的语法错误。</td>
+        </tr>
+        <tr>
+            <td><strong>在 <code>no_grad</code> 上下文中调用 <code>backward()</code></strong></td>
+            <td><code>with torch.no_grad(): loss.backward()</code></td>
+            <td>反向传播被阻断。</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 4.10 课后练习与思考 -->
+<div class="section-container" id="class-4-4.10">
+    <h2>4.10 练习</h2>
+    <div class="code-output-row">
+        <div class="code-col">
+            <pre><code>import torch
+
+# 练习1：手动复现链式法则的梯度计算
+print("练习1：手动复现梯度计算")
+x = torch.tensor(2.0, requires_grad=True)
+y = x ** 2 + 3 * x + 1
+y.backward()
+# 你的计算：dy/dx = 2*2 + 3 = 7.0
+print(f"x.grad (由PyTorch计算): {x.grad}")
+
+
+# 练习2：理解梯度累加
+print("\n练习2：理解梯度累加")
+x = torch.tensor(2.0, requires_grad=True)
+loss1 = x ** 2
+loss2 = x ** 3
+loss1.backward()
+print(f"第一次 backward 后: {x.grad}")
+loss2.backward()
+print(f"第二次 backward 后 (累加): {x.grad}")
+print(f"正确值应为: {2*2 + 3*4} = {2*2 + 3*4}")
+
+
+# 练习3：观察 retain_graph 的内存占用
+print("\n练习3：模拟保留计算图")
+x = torch.tensor([1.0, 2.0], requires_grad=True)
+y = x * x
+for i in range(2):
+    y.sum().backward(retain_graph=True)  # 这里保留了图
+    print(f"第{i+1}次 x.grad: {x.grad}")
+# 你想象一下，如果这个循环运行很多次，且没有释放图，内存会怎样？
+# 实际场景中，非必须请勿使用 retain_graph=True
+
+
+# 练习4：区分 torch.no_grad() 和 .detach()
+print("\n练习4：区分 no_grad 和 detach")
+x = torch.tensor([1.0, 2.0], requires_grad=True)
+
+# 使用 no_grad
+with torch.no_grad():
+    y_no_grad = x * 2
+print(f"y_no_grad.requires_grad: {y_no_grad.requires_grad}")
+
+# 使用 detach
+y_detach = x.detach() * 2
+print(f"y_detach.requires_grad: {y_detach.requires_grad}")
+
+print("x.requires_grad 在两者之后均保持不变:", x.requires_grad)
+
+
+# 练习5：尝试获取中间变量的梯度
+print("\n练习5：获取中间变量梯度")
+x = torch.tensor([1.0, 2.0], requires_grad=True)
+y = x * x
+y.retain_grad()  # 告诉 PyTorch 保留 y 的梯度
+z = y.sum()
+z.backward()
+print(f"x.grad: {x.grad}")
+print(f"y.grad: {y.grad}")  # 现在 y.grad 不为 None 了</code></pre>
+        </div>
+        <div class="output-col">
+            <pre><code><br><br><br>练习1：手动复现梯度计算<br><br><br><br>
+x.grad (由PyTorch计算): 7.0
+<br><br>
+练习2：理解梯度累加<br><br><br><br>
+第一次 backward 后: 4.0<br>
+第二次 backward 后 (累加): 16.0
+正确值应为: 16 = 16
+<br><br>
+练习3：模拟保留计算图<br><br><br><br>
+第1次 x.grad: tensor([2., 4.])
+第2次 x.grad: tensor([4., 8.])
+<br><br>
+练习4：区分 no_grad 和 detach<br><br><br><br><br><br>
+y_no_grad.requires_grad: False<br><br><br>
+y_detach.requires_grad: False<br>
+x.requires_grad 在两者之后均保持不变: True
+<br>
+练习5：获取中间变量梯度<br><br><br><br><br><br>
+x.grad: tensor([2., 4.])
+y.grad: tensor([1., 1.])</code></pre>
+        </div>
+    </div>
+</div>
+
+<!-- 4.11 总结 -->
+<div class="section-container" id="class-4-summary">
+    <h2>4.11 总结</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>知识点</th>
+            <th>核心理解</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>梯度下降</td>
+            <td>沿梯度反方向更新参数以最小化损失函数</td>
+        </tr>
+        <tr>
+            <td>反向传播</td>
+            <td>利用链式法则从损失出发逆向计算所有参数的梯度</td>
+        </tr>
+        <tr>
+            <td>计算图</td>
+            <td>记录前向操作历史的有向无环图，是反向传播的基础</td>
+        </tr>
+        <tr>
+            <td><code>grad_fn</code></td>
+            <td>每个非叶子张量携带的反向传播函数对象</td>
+        </tr>
+        <tr>
+            <td>梯度累加</td>
+            <td>多次 <code>backward()</code> 的梯度会相加，支持多损失组合和梯度累积</td>
+        </tr>
+        <tr>
+            <td><code>torch.no_grad()</code></td>
+            <td>上下文管理器，临时禁用梯度追踪，推理时必用</td>
+        </tr>
+        <tr>
+            <td><code>.detach()</code></td>
+            <td>从计算图中切断张量，返回共享数据但不需梯度的新张量</td>
+        </tr>
+        <tr>
+            <td><code>retain_graph</code></td>
+            <td>保留计算图以支持多次反向传播，需注意内存泄漏风险</td>
+        </tr>
+        <tr>
+            <td>叶子张量</td>
+            <td>由用户直接创建的张量，<code>grad_fn=None</code>，<code>.grad</code> 会保留梯度</td>
+        </tr>
+        <tr>
+            <td><code>.retain_grad()</code></td>
+            <td>让非叶子张量也保留梯度，用于调试或特殊需求</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    document.querySelectorAll('.section-container').forEach(section => {
+        section.addEventListener('mouseenter', () => {
+            section.style.transform = 'scale(1.03)';
+            section.style.backdropFilter = 'none'
+            section.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)'
+        })
+
+        section.addEventListener('mouseleave', () => {
+            section.style.transform = 'scale(1)';
+            section.style.backdropFilter = 'blur(10px)'
+            section.style.boxShadow = 'none'
+        })
+    })
+</script>
+</body>
+</html>
